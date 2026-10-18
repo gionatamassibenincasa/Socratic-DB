@@ -12,6 +12,7 @@ La fattibilità e l'efficacia didattica della proposta sono da sperimentare su p
 - **Piano dell'infrastruttura di calcolo deterministica.** Un sistema che esegua i controlli e i processi richiesti è complesso: fattibilità e scalabilità non sono stimabili a priori, in assenza di prove empiriche. Verifica: test dei controlli (§3.6A-B) e pilota (§4.5, punto 4).
 - **Piano dell'efficacia didattica.** Non è possibile stabilirla a priori: servono test diagnostici pre e post sperimentazione per misurare l'incremento delle prestazioni. Verifica: pre-test, post-test e trasferimento (§4.5, punti 2 e 5).
 - **Piano della progressione didattica.** Il metodo e le fasi appaiono ben definiti per granularità e misurabilità, ma ciò va validato sperimentalmente: la suddivisione attuale potrebbe produrre un lavoro ingestibile per il docente o per lo studente, oppure risultare inefficace o inefficiente. Verifica: osservazione nel pilota e analisi dei risultati (§4.5, punti 4 e 6).
+- **Piano della sostenibilità per il docente.** Il tempo di preparazione delle tracce e di revisione dei risultati deve essere compatibile con classi numerose e tempi stretti (§2.8). Verifica: misura dei tempi nel pilota (§4.5).
 
 ---
 
@@ -56,9 +57,10 @@ Al termine lo studente è in grado di, **autonomamente e senza tutor**:
 
 **Docente**
 
-- Predispone tracce, soluzioni di riferimento *multiple* (anche alternative valide), dati di riferimento e dataset nascosti, test e rubriche di valutazione.
-- Decide la sequenza, i tempi e i livelli di aiuto massimi consentiti per ciascun esercizio, e se abilitare la generazione automatica del DDL (fase 6) e dei dati (fase 7).
-- Legge le consegne (commit e Merge Request) e i log del processo; commenta in modo umano le consegne.
+- Sceglie o inserisce la traccia (dal catalogo o da prove d'esame) e **valida** la checklist dei requisiti proposta dallo strumento d'autore (§3.10). Facoltativamente fornisce uno schema canonico con dataset e query attese, per il controllo automatico dei risultati nella fase 8. Non scrive soluzioni alternative, dati di riferimento né test.
+- Decide la sequenza, i tempi e i livelli di aiuto massimi consentiti per ciascun esercizio, e se abilitare la generazione automatica del DDL (fase 6) e dei dati di test (fase 7).
+- Legge le consegne (commit e Merge Request) e il report compatto del processo (§2.8); legge a campione motivazioni e dialoghi; commenta in modo umano.
+- Esamina le segnalazioni di falsi positivi (soluzioni valide respinte) e decide se correggere la checklist o il controllo.
 - **È l'unico a esprimere valutazioni.** Conduce la prova individuale di trasferimento.
 - Revisiona periodicamente un campione di dialoghi per individuare errori del tutor LLM.
 
@@ -67,20 +69,21 @@ Al termine lo studente è in grado di, **autonomamente e senza tutor**:
 - Compito principale: trasformare le *diagnosi strutturate* prodotte dai controlli deterministici in una risposta socratica, al livello di aiuto richiesto dallo stato del dialogo. Le diagnosi sono vincolanti: la LLM non le contraddice.
 - Chiede allo studente di motivare le scelte e di riformulare.
 - Non assegna punteggi, non dichiara «superato/non superato», non fornisce la soluzione completa, non esegue SQL.
-- Dove non c'è diagnosi deterministica (decisioni progettuali), formula domande e controesempi, dichiarando che esistono più soluzioni accettabili.
-- Si comporta come sistema esperto che valuta costantemente, ma fornisce il proprio punto di vista **solo su richiesta** e dichiarandolo *non vincolante* (a differenza delle diagnosi deterministiche), su:
+- Dove non c'è diagnosi deterministica (decisioni progettuali e correttezza semantica di cardinalità e query), formula domande e controesempi, dichiarando che esistono più soluzioni accettabili.
+- Si comporta come sistema esperto che valuta costantemente, ma fornisce il proprio punto di vista **solo su richiesta** (salvo nella fase 8, dove il parere sul risultato delle query fa parte del dialogo) e dichiarandolo *non vincolante* (a differenza delle diagnosi deterministiche), su:
   - l'eliminazione delle ambiguità terminologiche e semantiche;
   - la completezza rispetto alle specifiche e alla possibilità di formulare le interrogazioni richieste dal testo;
   - la correttezza del modello e dei vincoli, oppure della sintassi, rispetto ai costrutti del modello in uso;
   - la minimalità, intesa come non ridondanza nei modelli e come realizzazione di query efficienti che non richiedono elaborazioni non necessarie;
   - la pertinenza del lessico rispetto al testo e al dominio.
 - Procede in modo maieutico ai livelli di aiuto L0–L2 e passa all'elicitazione ai livelli L3–L4 (§2.3).
-- Nella fase 7, se il docente abilita la generazione automatica dei dati, traduce i dati di riferimento del docente in istruzioni INSERT coerenti con lo schema dello studente; l'output è sempre sottoposto a verifica deterministica (§2.1).
+- Nella fase 7, se il docente abilita la generazione automatica, propone i dati di test (istruzioni INSERT) coerenti con lo schema dello studente; l'output è sempre sottoposto a verifica deterministica (§2.1).
+- Nella fase 8 riceve dall'esecutore il risultato della query sui dati di test e formula un parere non vincolante sulla corrispondenza tra richiesta, query e risultato, trasformandolo in domande (righe attese, mancanti o duplicate); non scrive la query corretta.
 - Se incerto, richiede di contattare il docente.
 
 **Sistema deterministico (orchestratore e controlli)**
 
-- Mantiene lo stato del percorso, valida i formati, esegue operazioni sullo schema (DDL), sui dati (DML) e sulle query (QL) in SQLite isolato, confronta i risultati con i test del docente e produce le diagnosi. Verifica anche i dati generati dalla LLM nella fase 7 e, se abilitato, genera il DDL dal modello relazionale consegnato.
+- Mantiene lo stato del percorso, valida i formati, esegue operazioni sullo schema (DDL), sui dati (DML) e sulle query (QL) in SQLite isolato e produce le diagnosi. Deriva dallo schema dello studente i test negativi e la copertura strutturale dei dati di test, verifica i dati proposti dalla LLM nella fase 7 e, se abilitato, genera il DDL dal modello relazionale consegnato. Passa al tutor il risultato delle query. Con lo schema canonico opzionale confronta i risultati con le query attese.
 
 ### 1.5 Verifica dell'apprendimento: prodotto, processo, trasferimento
 
@@ -91,7 +94,7 @@ La qualità della soluzione finale non dimostra che lo studente l'abbia compresa
 | Qualità progettuale | Schema corretto, completo, pertinente, minimale | Controlli deterministici + lettura del docente |
 | Ragionamento | Motivazioni di cardinalità, chiavi e vincoli | Campo `motivazione` nei file + dialogo (lettura del docente) |
 | Revisione | Correzione autonoma dopo feedback | Storia dei commit e dei livelli di aiuto richiesti |
-| Competenza SQL | Query eseguibili e corrette su dati significativi | Test automatici sul dataset del docente |
+| Competenza SQL | Query eseguibili e corrette su dati significativi | Esecuzione automatica sui dati di test; parere non vincolante del tutor |
 | Trasferimento | Soluzione di una traccia nuova, senza assistenza | Prova individuale in aula, valutata dal docente |
 
 Solo l'ultima riga, insieme alla lettura umana delle altre, concorre alla valutazione scolastica.
@@ -107,26 +110,36 @@ Solo l'ultima riga, insieme alla lettura umana delle altre, concorre alla valuta
 
 ## 2. Protocollo didattico
 
-### 2.1 Il percorso in nove fasi
+### 2.1 Il percorso: nove fasi in cinque consegne
 
-Le prime otto fasi si svolgono con il tutor; la nona è individuale e senza tutor. Il percorso distingue progettazione concettuale e logica, chiarisce i vincoli e introduce verifiche effettive dell'esecuzione SQL.
+Il percorso ha **nove fasi** di verifica, raggruppate in **cinque consegne** per contenere il carico di consegna e di tracciamento. Le prime quattro consegne si svolgono con il tutor; la quinta è individuale e senza tutor. Ogni consegna mantiene file e criteri distinti per ciascuna fase che contiene, così lo stato di padronanza (§2.5) resta per competenza. Il percorso distingue progettazione concettuale e logica, chiarisce i vincoli e introduce verifiche effettive dell'esecuzione SQL.
+
+| Consegna | Fasi | Contenuto | Automazione |
+| --- | --- | --- | --- |
+| C1. Requisiti e glossario | 1–2 | File di requisiti e glossario | Controllo deterministico di copertura rispetto alla checklist validata dal docente (termini e sinonimi attesi, definizioni non circolari); il tutor pone le domande |
+| C2. Progettazione concettuale | 3–4 | Modello ER e vincoli del dominio, in sezioni distinte (ogni vincolo con tipo e formulazione) | Validatore e test di scenario; il tutor conduce l'elicitazione dei vincoli |
+| C3. Progettazione logica e normalizzazione | 5 | Modello relazionale e meccanismo previsto per ciascun vincolo | Calcolo deterministico delle forme normali; il tutor discute le ridondanze |
+| C4. Implementazione e interrogazione SQL | 6–8 | DDL, dati, query | Ambiente SQLite isolato con esecuzione immediata e diagnosi; i tre punti di verifica restano distinti |
+| C5. Prova di trasferimento | 9 | Traccia nuova | Nessuna: prova individuale in aula, valutata dal docente |
+
+I criteri di ciascuna fase sono i seguenti.
 
 | # | Fase | Attività dello studente | Criteri verificabili (esempi) | Controllo |
 | --- | --- | --- | --- | --- |
-| 1 | Requisiti | Elenca dati da memorizzare, operazioni richieste, vincoli espliciti e impliciti, ambiguità da chiarire | Copertura delle voci richieste dal docente (checklist); vincoli impliciti individuati; ambiguità motivate | Checklist del docente; domande del tutor |
+| 1 | Requisiti | Elenca dati da memorizzare, operazioni richieste, vincoli espliciti e impliciti, ambiguità da chiarire | Copertura delle voci della checklist; vincoli impliciti individuati; ambiguità motivate | Checklist validata dal docente; domande del tutor |
 | 2 | Nomi-verbi e glossario | Estrae concetti candidati e li definisce senza assumere che ogni nome sia entità e ogni verbo associazione | Ogni voce ha definizione non circolare; sinonimi/omonimi dichiarati; motivazione della classificazione | Controllo di presenza e di circolarità semplice; tutor sul resto |
-| 3 | Modello concettuale ER | Entità, attributi, associazioni, cardinalità min/max, identificatori | Schema valido nel formato; ogni entità ha identificatore; cardinalità coerenti con i casi d'uso del docente; ogni elemento tracciabile a un requisito | Validatore + test di scenario (§3.6) |
+| 3 | Modello concettuale ER | Entità, attributi, associazioni, cardinalità min/max, identificatori | Schema valido nel formato; ogni entità ha identificatore; ogni elemento tracciabile a un requisito; cardinalità motivate | Validatore (struttura); domande e controesempi del tutor sulle cardinalità, non vincolanti |
 | 4 | Vincoli del dominio | Classifica i vincoli: rappresentati nello schema, CHECK/UNIQUE, inter-relazione o temporali (trigger/applicativo) | Ogni vincolo ha tipo, formulazione non ambigua e meccanismo previsto; i temporali definiscono intervallo, sovrapposizione e concorrenza | Checklist; tutor conduce l'elicitazione |
 | 5 | Modello relazionale | Applica le regole di traduzione; PK, FK, nullabilità, N:M, gerarchie, 1:1; dipendenze funzionali | Nessuna FK orfana; PK in ogni tabella; N:M risolte; nulli coerenti con le partecipazioni minime; 1NF/2NF/3NF verificate sulle dipendenze dichiarate | Validatore + calcolo deterministico delle forme normali |
-| 6 | Implementazione SQL (DDL) | Scrive il DDL SQLite con tipi e vincoli. Se il docente abilita la traduzione automatica, il DDL è generato deterministicamente dal modello relazionale consegnato e lo studente lo analizza e lo commenta | DDL eseguibile; struttura (`PRAGMA table_info`, `foreign_key_list`) coerente con lo schema relazionale; violazioni attese rifiutate | Esecuzione reale + test negativi |
-| 7 | Popolamento e test | Scrive INSERT significativi: casi limite, nulli, assenze di corrispondenza. Se il docente abilita la generazione automatica, la LLM traduce i dati di riferimento del docente in INSERT coerenti con lo schema dello studente, che li verifica e li integra con casi propri | Dati accettati dal DDL; copertura dei casi richiesti (es. cliente senza ordini); casi invalidi rifiutati; dati generati uguali a quelli di riferimento (numero e contenuto delle tuple) | Esecuzione reale + checklist di copertura + confronto deterministico con i dati di riferimento |
-| 8 | Query e verifica | Scrive, esegue, confronta e motiva le query | Risultato uguale all'atteso sul dataset nascosto del docente; sintassi eseguibile; motivazione della scelta di JOIN/aggregazione | Esecuzione reale + confronto di insiemi |
+| 6 | Implementazione SQL (DDL) | Scrive il DDL SQLite con tipi e vincoli. Se il docente abilita la traduzione automatica, il DDL è generato deterministicamente dal modello relazionale consegnato e lo studente lo analizza e lo commenta | DDL eseguibile; struttura (`PRAGMA table_info`, `foreign_key_list`) coerente con lo schema relazionale; violazioni attese, derivate dallo schema, rifiutate | Esecuzione reale + test negativi derivati dallo schema |
+| 7 | Popolamento e test | Scrive INSERT significativi: casi limite, nulli, assenze di corrispondenza. Se il docente abilita la generazione automatica, la LLM propone i dati di test coerenti con lo schema dello studente, che li verifica e li integra con casi propri | Dati accettati dal DDL; copertura strutturale derivata dallo schema (righe minime per tabella, genitori senza figli, nulli nelle colonne nullabili, valori ripetuti); casi invalidi derivati dallo schema rifiutati | Esecuzione reale + controlli di copertura derivati dallo schema |
+| 8 | Query e verifica | Scrive, esegue e motiva le query; esamina il risultato ottenuto sui dati di test | Query eseguibile; risultato esaminato e discusso; motivazione della scelta di JOIN/aggregazione; con schema canonico, risultato uguale all'atteso | Esecuzione reale + parere non vincolante del tutor sul risultato; confronto con le query attese solo con schema canonico |
 | 9 | Prova di trasferimento | Affronta una traccia nuova, individualmente e senza tutor | Rubrica del docente per O1–O7 | Docente |
 
 **Sulla generazione automatica.** Per impostazione predefinita lo studente scrive DDL e INSERT: sono competenze da acquisire (O5, O6). Il docente può abilitare, per singolo esercizio, due scorciatoie:
 
 - **DDL (fase 6):** generato da un *generatore deterministico* (non dalla LLM) a partire dallo schema relazionale, solo dopo che lo schema ha superato le verifiche indipendenti; la struttura ottenuta è poi confrontata con lo schema (§3.6A).
-- **Dati (fase 7):** il docente fornisce i dati di riferimento in un formato neutro (CSV o YAML) e la LLM li traduce in istruzioni INSERT per lo schema dello studente; nessun dato è inventato dalla LLM. Lo script è accettato solo se supera una *verifica deterministica*: esecuzione senza errori sul DDL dello studente con chiavi esterne attive, stesso numero e contenuto di tuple dei dati di riferimento, copertura dei casi limite richiesti e rifiuto dei casi invalidi del docente (§3.6D). Se la verifica fallisce lo script non è consegnato: si rigenera (fino a un numero massimo di tentativi) oppure si segnala al docente.
+- **Dati di test (fase 7):** la LLM propone le istruzioni INSERT per lo schema dello studente (valori plausibili, senza dati personali reali). Lo script è accettato solo se supera una *verifica deterministica* derivata dallo schema: esecuzione senza errori sul DDL dello studente con chiavi esterne attive, copertura strutturale (righe minime per tabella, genitori senza figli, nulli, valori ripetuti), rifiuto dei casi invalidi (§3.6D). Se la verifica fallisce lo script non è consegnato: si rigenera (fino a un numero massimo di tentativi) oppure si segnala al docente.
 
 Quando una scorciatoia è attiva, la competenza corrispondente non è esercitata in quella consegna e va verificata nella fase 9.
 
@@ -134,8 +147,9 @@ Quando una scorciatoia è attiva, la competenza corrispondente non è esercitata
 
 Il sistema distingue due classi di rilievi, con trattamento diverso.
 
-- **Errori oggettivamente verificabili:** formato non valido, FK verso tabella inesistente, tabella senza PK, N:M non risolta, DDL non eseguibile, violazione di un vincolo dichiarato dalla traccia, query che non restituisce il risultato atteso, dipendenza funzionale che viola la 3NF. Il tutor li segnala con certezza e li guida a correggerli.
-- **Decisioni progettuali con più soluzioni corrette:** attributo o entità, strategia di traduzione di una gerarchia, accorpamento o tabella separata per una 1:1, uso di chiave surrogata. Il tutor non dichiara errore; chiede di motivare, mostra le conseguenze con un controesempio e accetta ogni soluzione coerente con i requisiti. Il docente fornisce per ogni esercizio un insieme di soluzioni alternative valide usate nei test.
+- **Errori oggettivamente verificabili** nei file dello studente: formato non valido, FK verso tabella inesistente, tabella senza PK, N:M non risolta, DDL non eseguibile, violazione di un vincolo dichiarato dallo studente nel proprio schema, query non eseguibile, dipendenza funzionale dichiarata che viola la 3NF. Il tutor li segnala con certezza e li guida a correggerli.
+- **Decisioni progettuali con più soluzioni corrette:** attributo o entità, strategia di traduzione di una gerarchia, accorpamento o tabella separata per una 1:1, uso di chiave surrogata. Il tutor non dichiara errore; chiede di motivare, mostra le conseguenze con un controesempio e accetta ogni soluzione coerente con i requisiti.
+- **Correttezza semantica rispetto alla traccia** (cardinalità, entità, risultato delle query): non è verificata in modo deterministico, salvo l'uso opzionale di uno schema canonico con query attese. Il tutor formula un parere non vincolante, con domande e controesempi; l'accertamento finale spetta alla prova di trasferimento e al docente.
 
 ### 2.3 Livelli di aiuto progressivi
 
@@ -184,6 +198,57 @@ Questi stati sono *indicatori di processo per lo studente e per il docente*, non
 
 Le tre misure non sono sommate in un punteggio unico.
 
+### 2.8 Sostenibilità per il docente
+
+Il carico di lavoro è un vincolo di progetto: un protocollo che richiede ore di preparazione per ogni traccia non è applicabile in classi numerose e con tempi stretti. L'automazione riduce solo la preparazione e la lettura; la valutazione resta esclusivamente umana.
+
+**Pacchetto minimo e pacchetto esteso.** Il materiale richiesto al docente è ridotto all'essenziale; il resto si deriva dai file dello studente.
+
+| Elemento | Pacchetto minimo (predefinito) | Pacchetto esteso (opzionale) |
+| --- | --- | --- |
+| Traccia | Sì | Sì |
+| Checklist dei requisiti (5–10 voci), proposta dallo strumento d'autore e validata | Sì | Sì |
+| Test negativi e copertura dei dati | Derivati dallo schema dello studente | Derivati dallo schema dello studente |
+| Risultato delle query (fase 8) | Parere non vincolante del tutor su dati di test dello studente o proposti dalla LLM | Schema canonico, dataset e query attese: controllo deterministico dei risultati, riusabile dal catalogo |
+| Soluzioni alternative e scenari di test | No | Solo nel golden set di ricerca (§3.6C) |
+
+**Strumento d'autore (AI dietro le quinte).** Il docente inserisce la traccia, senza soluzione. Lo strumento propone la checklist dei requisiti e, per il pacchetto esteso, schema canonico, dataset e query attese. Controlli deterministici ne verificano la coerenza interna (§3.10). Il docente valida o affina il pacchetto, che viene poi congelato e versionato. Il materiale generato da una LLM non è affidabile per sé: la validazione umana è obbligatoria.
+
+**Catalogo di schemi-tipo.** Domini ricorrenti (prenotazioni e ticketing, e-commerce, gestione ospedaliera, biblioteca e prestiti) con checklist, errori tipici e, per alcuni domini, schema canonico con dataset e query attese già pronti. Il docente sceglie il modello e lo adatta alla traccia.
+
+**Tracce d'esame come punto di partenza.** Le prove degli Esami di Stato sono una fonte di tracce. Prima dell'uso, verificare note legali e licenza del sito del Ministero, citare la fonte e rimandare al documento originale senza riprodurlo. Elenco indicato dal proponente (i link non sono stati verificati uno per uno; il docente seleziona le prove con basi di dati):
+
+| Anno | Sessione | Codice | Link |
+| --- | --- | --- | --- |
+| 2005 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2005/tecnica/M733.pdf) |
+| 2007 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2007/M733.PDF) |
+| 2009 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2009/M733.pdf) |
+| 2011 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2011/M733.pdf) |
+| 2013 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M733.pdf) |
+| 2016 | Ordinaria | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Ordinaria/M967_ORD16.pdf) |
+| 2016 | Straordinaria | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Straordinaria/M967_STR16.pdf) |
+| 2016 | Suppletiva | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Suppletiva/M967_SUP16.pdf) |
+| 2016 | Esempio di prova | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Esempio%20di%20prova/M967_SIM16.pdf) |
+| 2018 | Ordinaria | I044 | [PDF](https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Ordinaria/I044_ORD18.pdf) |
+| 2018 | Suppletiva | I044 | [PDF](https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Suppletiva/I044_SUP18.pdf) |
+| 2018 | Straordinaria | I044 | [PDF](https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Straordinaria/I044_STR18.pdf) |
+
+Per la fase 9 non si usano tracce pubbliche di cui circolano soluzioni online (e che una LLM può aver visto in addestramento): si adattano (dominio, requisiti, vincoli) o se ne scrivono di inedite.
+
+**Report compatto.** Per lo studente e per il docente: indicatori fattuali per fase (tentativi per tipo di diagnosi, livello di aiuto massimo richiesto), prodotti dai controlli deterministici e non da un giudizio della LLM. Esempio: «3 tentativi con diagnosi 3NF\_VIOLATA nella fase 5». Nessun punteggio e nessuna inferenza sulla competenza; il report non è utilizzabile a fini valutativi.
+
+**Pre-screening delle motivazioni.** Nel prototipo, regole deterministiche (lunghezza minima, assenza di riferimenti a elementi dello schema o ai requisiti, testo identico a quello di altri studenti) segnalano al docente i casi da leggere per primi. Il docente legge comunque un campione casuale, per non basarsi solo sulle segnalazioni. Un classificatore basato su modello è rinviato al sistema avanzato (§3.9, §4.3).
+
+**Ipotesi di carico (da misurare nel pilota).**
+
+| Attività del docente | Ipotesi con strumento d'autore e catalogo | Misura nel pilota |
+| --- | --- | --- |
+| Preparazione di una traccia | Scelta o inserimento della traccia e validazione della checklist (pacchetto minimo): 20–30 minuti | Minuti di validazione per traccia |
+| Lettura dei risultati | Report compatto, casi segnalati e un campione di motivazioni e dialoghi | Minuti per classe e per consegna |
+| Riferimento: preparazione manuale senza strumento | 4–6 ore per traccia (stima del proponente) | Da rilevare su un campione di docenti |
+
+La stima non è un risultato: tempi di preparazione e di revisione sono misure del pilota (§4.5).
+
 ---
 
 ## 3. Prototipo tecnico minimo
@@ -206,9 +271,10 @@ Le tre misure non sono sommate in un punteggio unico.
                  |                    |                      |
                  v                    v                      v
       [Validatori YAML]     [Esecutore SQLite]      [Tutor LLM (1 modello)]
-  schema, FK, PK, forme    isolato, in memoria,      riceve solo diagnosi
-  normali (deterministici) test del docente          + livello di aiuto
-                 \____________ diagnosi strutturate ____________/
+  schema, FK, PK, forme    isolato, in memoria,      riceve diagnosi, risultati
+  normali (deterministici) dati di test              delle query e livello di aiuto
+                           dello studente
+                 +---- diagnosi strutturate e risultati ----+
 ```
 
 Flusso: lo studente consegna un file; l'orchestratore lo valida, esegue i controlli, costruisce le diagnosi; il tutor LLM le trasforma in una risposta socratica al livello di aiuto corrente; l'orchestratore verifica che la risposta non contenga la soluzione (§3.6) e la restituisce.
@@ -291,7 +357,7 @@ Requisiti di isolamento, applicati a ogni esecuzione:
 - `PRAGMA foreign_keys = ON` sempre attivo; in sola lettura per le query (`PRAGMA query_only = ON` o apertura `mode=ro`).
 - Autorizzatore SQLite (`set_authorizer`) che nega `ATTACH`, `load_extension`, e scritture fuori dalla fase di DDL/popolamento.
 - Timeout (es. 2 s) e limite al numero di righe restituite.
-- Il dataset nascosto del docente non è mai visibile allo studente: le query dello studente vi sono eseguite e lo studente vede solo l'esito del confronto, la prima differenza e un campione limitato.
+- Le query dello studente sono eseguite sui suoi dati di test (scritti da lui o proposti dalla LLM) e il risultato (colonne, righe, numero di righe) è passato al tutor. Se il docente fornisce uno schema canonico con dataset, questo non è mai visibile allo studente: lo studente vede solo l'esito del confronto, la prima differenza e un campione limitato.
 
 ### 3.6 Test automatici
 
@@ -303,30 +369,30 @@ Tre famiglie di test, tutte eseguibili in pytest e in CI.
 - Forme normali: tabelle con dipendenze note; verifica di 2NF, 3NF, BCNF attese.
 - Esecutore: DDL valido, DDL con errore, tentativi di `ATTACH`, loop infinito, query lenta.
 - DDL ↔ schema relazionale: la struttura di SQLite coincide con quella dichiarata.
+- Derivazione automatica dei test negativi e della copertura dei dati da schemi con PK, FK, NOT NULL, CHECK e UNIQUE: i casi generati sono quelli attesi.
 
-**B. Test sugli esercizi (predisposti dal docente per ogni traccia)**
+**B. Test sugli esercizi (golden set di ricerca e schema canonico opzionale)**
 
-- Soluzioni di riferimento multiple e valide, che devono essere accettate dal sistema.
-- Soluzioni errate catalogate per tipo di errore, ciascuna con la diagnosi attesa.
-- *Test di scenario:* dati di prova che lo schema deve poter rappresentare (es. paziente senza visite, medico con due visite) e dati che deve rifiutare.
-- Query: insiemi attesi sul dataset nascosto, con indicazione se l'ordine conta.
+- Checklist dei requisiti: la copertura è rilevata correttamente su soluzioni valide e su soluzioni con requisiti mancanti.
+- Golden set di ricerca (poche tracce, lavoro una tantum del gruppo di ricerca): soluzioni di riferimento multiple e valide, che devono essere accettate dal sistema, e soluzioni errate catalogate per tipo di errore, ottenute anche per mutazione deterministica (rimuovere una FK, cambiare una cardinalità, lasciare una N:M non risolta), ciascuna con la diagnosi attesa.
+- Con schema canonico (opzionale): query attese eseguibili sul dataset; confronto di insiemi, con indicazione se l'ordine conta.
 
 **C. Test del tutor (golden set)**
 
 - Almeno 30 casi per fase: corretto, errato (per tipo di errore), alternativo valido.
 - *Diagnosi:* il tutor non deve contraddire i controlli; non deve segnalare errori su soluzioni alternative valide.
 - *Aderenza al livello:* a L1 non compaiono controesempi o soluzioni; a L2 compare un controesempio.
-- *Non-fuga della soluzione:* controllo automatico sulla risposta (assenza di blocchi YAML/SQL completi in fasi 1–5 e 8; per le fasi 6–7 assenza del DDL di riferimento quando la scorciatoia è disattivata; con la scorciatoia dati attiva, assenza di INSERT diversi da quelli derivati dai dati del docente) con rifiuto e rigenerazione.
+- *Non-fuga della soluzione:* controllo automatico sulla risposta (assenza di blocchi YAML/SQL completi in fasi 1–5 e 8; per le fasi 6–7 assenza del DDL di riferimento quando la scorciatoia è disattivata; con la scorciatoia dati attiva, solo INSERT coerenti con lo schema dello studente) con rifiuto e rigenerazione.
+- *Parere sulle query (fase 8):* su un insieme di query corrette e sbagliate (JOIN errata, GROUP BY mancante, filtro sbagliato, duplicati) eseguite su dati di test dello studente o proposti dalla LLM, si misura quante query errate il tutor segnala e quante corrette segnala a torto. Si misura anche quanto i dati di test discriminano (genitori senza figli, nulli, duplicati).
 - *Revisione umana* di un campione da parte di due docenti, con calcolo dell'accordo (kappa di Cohen). Una LLM-judge può servire solo per regressione, mai come misura di validità.
 
 **D. Verifica deterministica dei dati generati dalla LLM (fase 7, se abilitata)**
 
 - Lo script generato si esegue senza errori sul DDL dello studente, con `PRAGMA foreign_keys = ON`.
-- Numero di righe per tabella e contenuto delle tuple coincidono con i dati di riferimento (confronto di insiemi dopo normalizzazione dei tipi).
-- Nessuna istruzione diversa da `INSERT`; nessun valore assente dai dati di riferimento.
-- I casi invalidi del docente (violazioni di PK, FK, NOT NULL, CHECK) sono rifiutati dal DDL.
-- Casi limite richiesti presenti (es. cliente senza ordini, valori nulli).
-- Valutazione del tasso di successo al primo tentativo sul golden set, per scegliere il modello e il numero massimo di rigenerazioni.
+- Nessuna istruzione diversa da `INSERT`.
+- Copertura strutturale derivata dallo schema: righe minime per tabella (per esempio 5), almeno un genitore senza figli per ogni FK, almeno un valore nullo per ogni colonna nullabile, valori ripetuti dove servono per GROUP BY e DISTINCT.
+- I casi invalidi derivati dallo schema (violazioni di PK, FK, NOT NULL, CHECK, UNIQUE) sono rifiutati dal DDL.
+- Tasso di successo al primo tentativo sul golden set, per scegliere il modello e il numero massimo di rigenerazioni.
 
 ### 3.7 System prompt del tutor (versione per il prototipo)
 
@@ -334,7 +400,8 @@ Tre famiglie di test, tutte eseguibili in pytest e in CI.
 Sei DB-Socrates, tutor di Basi di Dati. Ricevi in ingresso: (1) la fase corrente,
 (2) il file consegnato dallo studente, (3) un elenco di DIAGNOSI prodotte da
 controlli automatici, (4) il LIVELLO DI AIUTO consentito (L0-L4),
-(5) le eventuali SCORCIATOIE abilitate dal docente (DDL, DATI).
+(5) le eventuali SCORCIATOIE abilitate dal docente (DDL, DATI),
+(6) in fase 8, il RISULTATO della query sui dati di test.
 
 Regole:
 - Le diagnosi sono la verita tecnica: non contraddirle e non aggiungerne.
@@ -346,10 +413,15 @@ Regole:
   di motivare la scelta.
 - Esprimi un parere su completezza, minimalita, pertinenza o lessico solo se lo
   studente lo chiede, dichiarando che non e vincolante.
+- Fase 8: confronta la richiesta, la query e il RISULTATO ricevuto; esprimi un
+  parere non vincolante e trasformalo in domande (righe attese, mancanti o
+  duplicate). Se i dati di test non permettono di distinguere una query
+  corretta da una sbagliata, dillo e chiedi allo studente di aggiungere casi.
 - Chiedi sempre allo studente di giustificare la modifica che propone.
 - Se non sei sicuro, dillo e rimanda al docente.
-- Se la scorciatoia DATI e attiva (fase 7): traduci in INSERT SOLO i dati di
-  riferimento forniti, senza aggiungere ne modificare valori; nessun altro codice.
+- Se la scorciatoia DATI e attiva (fase 7): proponi INSERT coerenti con lo schema
+  dello studente (valori plausibili, senza dati personali reali, con genitori
+  senza figli, nulli e valori ripetuti); nessun altro codice.
 - Rispondi in italiano, in massimo 150 parole (esclusi gli INSERT generati).
 ```
 
@@ -382,9 +454,21 @@ esegui:
 - **Più agenti con un solo compito:** trascrittore, verificatore di vincoli, generatore di controesempi, tutor dialogico, riassuntore per il docente; coordinati dall'orchestratore.
 - **Più notazioni** (Mermaid, PlantUML, diagrammi ER) tramite convertitori verso e da YAML, con test di round-trip.
 - **RAG** su dispense, rubriche e soluzioni alternative del docente.
-- **Cruscotto per il docente** con aggregati formativi: errori frequenti, livelli di aiuto, tempi.
+- **Cruscotto per il docente** con aggregati formativi: errori frequenti, livelli di aiuto, tempi. Nel prototipo è un report in formato testo o CSV (§2.8). Un classificatore leggero delle motivazioni si valuta solo dopo l'aggiornamento della DPIA (§4.3).
 - **Analisi di plagio e di delega** per studenti che consegnano soluzioni non coerenti con la cronologia del dialogo.
 - **Più modelli** (reasoning/coding e visione) con coda e instradamento.
+
+### 3.10 Strumento d'autore per il docente
+
+Agente con un solo compito: proporre il pacchetto dell'esercizio. Non dialoga con gli studenti e non tratta dati personali.
+
+1. **Ingresso:** testo della traccia e, facoltativamente, uno schema-tipo di dominio dal catalogo.
+2. **Proposta della LLM:** checklist dei requisiti (5–10 voci). Per il pacchetto esteso, anche schema canonico, dataset e query attese per la fase 8.
+3. **Controlli automatici di coerenza:** ogni voce della checklist usa termini presenti nella traccia o nei sinonimi del catalogo e non duplica le altre; con lo schema canonico, il DDL è eseguibile, il dataset è accettato e le query attese eseguono restituendo righe.
+4. **Validazione umana:** il docente rivede il pacchetto come Merge Request (differenze leggibili), approva, modifica o scarta; l'approvazione crea un tag di versione. Gli studenti usano solo versioni approvate.
+5. **Miglioramento continuo:** un falso positivo segnalato (soluzione valida respinta) è esaminato una volta dal docente, che corregge la checklist o il controllo in una nuova versione.
+
+Lo strumento non produce mai valutazioni.
 
 ---
 
@@ -421,22 +505,25 @@ Da prevedere: informativa, registro dei trattamenti, valutazione d'impatto (DPIA
 ### 4.3 Valutazione e quadro regolatorio sull'IA
 
 - **Nessun uso valutativo del sistema.** Punteggi o giudizi del tutor non esistono; gli esiti dei controlli tecnici sono informazioni formative. La valutazione resta una decisione umana del docente, fondata su prova individuale e lettura degli elaborati. Questo è coerente con il vincolo stabilito dal progetto e riduce l'esposizione alle regole sulle decisioni automatizzate (art. 22 GDPR).
-- Il Regolamento europeo sull'IA classifica tra i sistemi ad alto rischio quelli destinati a valutare i risultati di apprendimento o a orientare l'accesso all'istruzione. Il prototipo è progettato per **non** essere un tale sistema: lo si documenta nella scheda del sistema e lo si ribadisce nell'informativa. Restano gli obblighi di trasparenza verso gli studenti (stanno dialogando con una IA) e di alfabetizzazione all'IA per chi la usa.
+- Il Regolamento europeo sull'IA classifica tra i sistemi ad alto rischio quelli destinati a valutare i risultati di apprendimento, anche quando i risultati servono a orientare il percorso di apprendimento, o a orientare l'accesso all'istruzione. La linea di confine con un tutor che dà diagnosi sul prodotto non è banale. Il prototipo è progettato per **non** valutare le competenze dello studente (nessun punteggio, nessuna inferenza sulla padronanza, nessun profilo), ma la classificazione va confermata con il DPO, verificando anche lo stato di applicazione delle disposizioni sui sistemi ad alto rischio, che potrebbe essere cambiato. Si documenta nella scheda del sistema e si ribadisce nell'informativa. Restano gli obblighi di trasparenza verso gli studenti (stanno dialogando con una IA) e di alfabetizzazione all'IA per chi la usa.
+- **Strumento d'autore e report al docente.** Lo strumento d'autore tratta solo tracce e materiali didattici, senza dati degli studenti. Il report compatto contiene indicatori fattuali (conteggi di tentativi per tipo di diagnosi, livelli di aiuto richiesti) prodotti dai controlli deterministici e non da un giudizio della LLM, senza punteggi né inferenze sulla competenza. Il pre-screening delle motivazioni usa nel prototipo regole deterministiche; un classificatore basato su modello e i report che etichettano le «difficoltà» dello studente si avvicinano alla valutazione dei risultati di apprendimento e sono rinviati al sistema avanzato, dopo l'aggiornamento della DPIA e il parere del DPO.
 - Verificare con il DPO l'allineamento con le indicazioni del Ministero e del Garante per la protezione dei dati personali sull'IA nella scuola, che possono essere state aggiornate.
 - Prevedere un **percorso alternativo** senza tutor per chi non intende usarlo.
 
 ### 4.4 Limiti del sistema
 
-- La LLM può sbagliare, essere incoerente o troppo compiacente; per questo non decide sulla correttezza e il suo output è filtrato e campionato.
-- I controlli deterministici verificano ciò che è stato formalizzato nei test: soluzioni valide non previste dal docente possono essere segnalate erroneamente. Va mantenuta una procedura di appello al docente e un arricchimento continuo delle soluzioni alternative.
+- La LLM può sbagliare, essere incoerente o troppo compiacente; per questo non decide sulla correttezza e il suo output è filtrato e campionato. Nelle fasi 3, 4 e 8 il suo parere sulla correttezza semantica (cardinalità, vincoli, query) non è verificato in modo deterministico: l'errore atteso si misura sul golden set (§3.6C) e nel pilota.
+- I controlli deterministici verificano ciò che è stato formalizzato nei test: un controllo troppo rigido può respingere una soluzione valida. Va mantenuta una procedura di appello al docente.
 - I vincoli che coinvolgono più righe o il tempo non sono garantiti dal solo DDL SQLite; il tutor lo spiega e il test li verifica solo per gli scenari previsti.
 - Le normalizzazioni sono verificate sulle dipendenze funzionali dichiarate: se lo studente le dichiara in modo incompleto, il controllo è incompleto.
 - Fotografie e disegni a mano (sistema avanzato): errori di trascrizione possibili; correzione manuale obbligatoria.
 - Il tutor riduce ma non elimina il rischio di delega del pensiero; la fase 9 misura il trasferimento.
-- Il sistema supporta un sottoinsieme di tracce preparate dal docente, non qualsiasi esercizio.
+- Il sistema supporta tracce con checklist dei requisiti validata dal docente, non qualsiasi testo.
 - Con GPU unica, la scalabilità è limitata a una classe per volta.
-- Con le scorciatoie attive (DDL e dati generati) le competenze O5 e O6 non sono esercitate in quella consegna; i dati generati dalla LLM sono verificati contro i dati di riferimento, ma un errore dei dati di riferimento non viene rilevato.
+- Con le scorciatoie attive (DDL e dati generati) le competenze O5 e O6 non sono esercitate in quella consegna; i dati generati dalla LLM sono verificati solo sul piano strutturale (accettati dal DDL, copertura, casi invalidi rifiutati), non per plausibilità semantica; dati poco discriminanti possono rendere poco informativo il parere sulle query.
 - Con classi di 5–20 studenti la sperimentazione ha bassa potenza statistica: i risultati sono indicativi, non generalizzabili.
+- Il materiale d'esercizio generato dallo strumento d'autore può contenere errori che i controlli di coerenza non rilevano (soluzioni valide sbagliate allo stesso modo, test troppo deboli). Esiste il rischio che il docente accetti la proposta senza leggerla con attenzione (*automation bias*): la validazione va guidata da una lista di controllo e verificata a campione nel pilota.
+- I tempi di preparazione indicati (20–30 minuti per traccia) sono un'ipotesi, non un risultato.
 
 ### 4.5 Protocollo di sperimentazione
 
@@ -450,10 +537,10 @@ Prima di estendere il progetto a più classi si svolge una sperimentazione contr
 6. **Analisi dei risultati.** Non solo punteggi: autonomia (livello di aiuto richiesto nel tempo), qualità delle motivazioni, capacità di correggere gli errori, tipologie di errori residui, esperienza percepita.
 7. **Confronto controllato (fase successiva).** Se possibile, confrontare il tutor socratico con una esercitazione tradizionale (classi parallele o schema a rotazione/crossover) tenendo conto delle differenze iniziali (covariata: pre-test). Un miglioramento dopo l'attività è incoraggiante ma da solo non dimostra che sia stato causato dalla LLM.
 
-**Dati da raccogliere (pseudonimi):** esiti dei test tecnici per tentativo, livello di aiuto richiesto, numero di iterazioni per problema, tempi, storia dei commit, punteggi di pre/post/trasferimento, questionario di percezione (utilità, autonomia, fiducia).
+**Dati da raccogliere (pseudonimi):** esiti dei test tecnici per tentativo, livello di aiuto richiesto, numero di iterazioni per problema, tempi, storia dei commit, punteggi di pre/post/trasferimento, questionario di percezione (utilità, autonomia, fiducia), tempi di preparazione e di revisione del docente per traccia e per classe.
 
 **Analisi:** statistiche descrittive e grandezza dell'effetto con intervalli di confidenza; con campioni piccoli, analisi prudente e qualitativa; dichiarazione esplicita delle minacce alla validità (selezione, effetto novità, apprendimento esterno, differenze tra docenti).
 
-**Criteri di successo suggeriti** (da fissare prima dell'avvio): miglioramento nel post-test e nel trasferimento rispetto al pre-test; riduzione del livello medio di aiuto richiesto nel corso del percorso; motivazioni più complete alla fine; assenza di incidenti di privacy; sostenibilità del carico per il docente.
+**Criteri di successo suggeriti** (da fissare prima dell'avvio): miglioramento nel post-test e nel trasferimento rispetto al pre-test; riduzione del livello medio di aiuto richiesto nel corso del percorso; motivazioni più complete alla fine; assenza di incidenti di privacy; carico del docente sostenibile secondo i tempi misurati (ipotesi di lavoro: al massimo 30 minuti di validazione per traccia, da verificare nel pilota); accordo tra il parere del tutor sulle query e il giudizio di due valutatori umani su un campione; per alcuni esercizi, confronto tra pacchetto minimo e pacchetto esteso per misurare quanto aggiunge il controllo deterministico dei risultati.
 
 **Etica e governance:** approvazione del dirigente e, per la parte di ricerca, parere del DPO o dell'organo competente; possibilità di ritirarsi senza conseguenze; restituzione dei risultati agli studenti.
