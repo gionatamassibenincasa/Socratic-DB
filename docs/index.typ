@@ -1,0 +1,1425 @@
+// Chapter-based numbering for books with appendix support
+#let equation-numbering = it => {
+  let pattern = if state("appendix-state", none).get() != none { "(A.1)" } else { "(1.1)" }
+  numbering(pattern, counter(heading).get().first(), it)
+}
+#let callout-numbering = it => {
+  let pattern = if state("appendix-state", none).get() != none { "A.1" } else { "1.1" }
+  numbering(pattern, counter(heading).get().first(), it)
+}
+#let subfloat-numbering(n-super, subfloat-idx) = {
+  let chapter = counter(heading).get().first()
+  let pattern = if state("appendix-state", none).get() != none { "A.1a" } else { "1.1a" }
+  numbering(pattern, chapter, n-super, subfloat-idx)
+}
+// Theorem configuration for theorion
+// Chapter-based numbering (H1 = chapters)
+#let theorem-inherited-levels = 1
+
+// Appendix-aware theorem numbering
+#let theorem-numbering(loc) = {
+  if state("appendix-state", none).at(loc) != none { "A.1" } else { "1.1" }
+}
+
+// Theorem render function
+// Note: brand-color is not available at this point in template processing
+#let theorem-render(prefix: none, title: "", full-title: auto, body) = {
+  block(
+    width: 100%,
+    inset: (left: 1em),
+    stroke: (left: 2pt + black),
+  )[
+    #if full-title != "" and full-title != auto and full-title != none {
+      strong[#full-title]
+      linebreak()
+    }
+    #body
+  ]
+}
+// Some definitions presupposed by pandoc's typst output.
+#let content-to-string(content) = {
+  if content.has("text") {
+    content.text
+  } else if content.has("children") {
+    content.children.map(content-to-string).join("")
+  } else if content.has("body") {
+    content-to-string(content.body)
+  } else if content == [ ] {
+    " "
+  }
+}
+
+#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
+
+#let endnote(num, contents) = [
+  #stack(dir: ltr, spacing: 3pt, super[#num], contents)
+]
+
+#show terms.item: it => block(breakable: false)[
+  #text(weight: "bold")[#it.term]
+  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
+]
+
+// Some quarto-specific definitions.
+
+#show raw.where(block: true): set block(
+    fill: luma(230),
+    width: 100%,
+    inset: 8pt,
+    radius: 2pt
+  )
+
+#let block_with_new_content(old_block, new_content) = {
+  let fields = old_block.fields()
+  let _ = fields.remove("body")
+  if fields.at("below", default: none) != none {
+    // TODO: this is a hack because below is a "synthesized element"
+    // according to the experts in the typst discord...
+    fields.below = fields.below.abs
+  }
+  block.with(..fields)(new_content)
+}
+
+#let empty(v) = {
+  if type(v) == str {
+    // two dollar signs here because we're technically inside
+    // a Pandoc template :grimace:
+    v.matches(regex("^\\s*$")).at(0, default: none) != none
+  } else if type(v) == content {
+    if v.at("text", default: none) != none {
+      return empty(v.text)
+    }
+    for child in v.at("children", default: ()) {
+      if not empty(child) {
+        return false
+      }
+    }
+    return true
+  }
+
+}
+
+// Subfloats
+// This is a technique that we adapted from https://github.com/tingerrr/subpar/
+#let quartosubfloatcounter = counter("quartosubfloatcounter")
+
+#let quarto_super(
+  kind: str,
+  caption: none,
+  label: none,
+  supplement: str,
+  position: none,
+  subcapnumbering: "(a)",
+  body,
+) = {
+  context {
+    let figcounter = counter(figure.where(kind: kind))
+    let n-super = figcounter.get().first() + 1
+    set figure.caption(position: position)
+    [#figure(
+      kind: kind,
+      supplement: supplement,
+      caption: caption,
+      {
+        show figure.where(kind: kind): set figure(numbering: _ => {
+          let subfloat-idx = quartosubfloatcounter.get().first() + 1
+          subfloat-numbering(n-super, subfloat-idx)
+        })
+        show figure.where(kind: kind): set figure.caption(position: position)
+
+        show figure: it => {
+          let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)
+          show figure.caption: it => block({
+            num.slice(2) // I don't understand why the numbering contains output that it really shouldn't, but this fixes it shrug?
+            [ ]
+            it.body
+          })
+
+          quartosubfloatcounter.step()
+          it
+          counter(figure.where(kind: it.kind)).update(n => n - 1)
+        }
+
+        quartosubfloatcounter.update(0)
+        body
+      }
+    )#label]
+  }
+}
+
+// callout rendering
+// this is a figure show rule because callouts are crossreferenceable
+#show figure: it => {
+  if type(it.kind) != str {
+    return it
+  }
+  let kind_match = it.kind.matches(regex("^quarto-callout-(.*)")).at(0, default: none)
+  if kind_match == none {
+    return it
+  }
+  let kind = kind_match.captures.at(0, default: "other")
+  kind = upper(kind.first()) + kind.slice(1)
+  // now we pull apart the callout and reassemble it with the crossref name and counter
+
+  // when we cleanup pandoc's emitted code to avoid spaces this will have to change
+  let old_callout = it.body.children.at(1).body.children.at(1)
+  let old_title_block = old_callout.body.children.at(0)
+  let children = old_title_block.body.body.children
+  let old_title = if children.len() == 1 {
+    children.at(0)  // no icon: title at index 0
+  } else {
+    children.at(1)  // with icon: title at index 1
+  }
+
+  // TODO use custom separator if available
+  // Use the figure's counter display which handles chapter-based numbering
+  // (when numbering is a function that includes the heading counter)
+  let callout_num = it.counter.display(it.numbering)
+  let new_title = if empty(old_title) {
+    [#kind #callout_num]
+  } else {
+    [#kind #callout_num: #old_title]
+  }
+
+  let new_title_block = block_with_new_content(
+    old_title_block,
+    block_with_new_content(
+      old_title_block.body,
+      if children.len() == 1 {
+        new_title  // no icon: just the title
+      } else {
+        children.at(0) + new_title  // with icon: preserve icon block + new title
+      }))
+
+  align(left, block_with_new_content(old_callout,
+    block(below: 0pt, new_title_block) +
+    old_callout.body.children.at(1)))
+}
+
+// 2023-10-09: #fa-icon("fa-info") is not working, so we'll eval "#fa-info()" instead
+#let callout(body: [], title: "Callout", background_color: rgb("#dddddd"), icon: none, icon_color: black, body_background_color: white) = {
+  block(
+    breakable: false, 
+    fill: background_color, 
+    stroke: (paint: icon_color, thickness: 0.5pt, cap: "round"), 
+    width: 100%, 
+    radius: 2pt,
+    block(
+      inset: 1pt,
+      width: 100%, 
+      below: 0pt, 
+      block(
+        fill: background_color,
+        width: 100%,
+        inset: 8pt)[#if icon != none [#text(icon_color, weight: 900)[#icon] ]#title]) +
+      if(body != []){
+        block(
+          inset: 1pt, 
+          width: 100%, 
+          block(fill: body_background_color, width: 100%, inset: 8pt, body))
+      }
+    )
+}
+
+
+// syntax highlighting functions from skylighting:
+/* Function definitions for syntax highlighting generated by skylighting: */
+#let EndLine() = raw("\n")
+#let Skylighting(fill: none, number: false, start: 1, sourcelines) = {
+   let blocks = []
+   let lnum = start - 1
+   let bgcolor = rgb("#f1f3f5")
+   for ln in sourcelines {
+     if number {
+       lnum = lnum + 1
+       blocks = blocks + box(width: if start + sourcelines.len() > 999 { 30pt } else { 24pt }, text(fill: rgb("#aaaaaa"), [ #lnum ]))
+     }
+     blocks = blocks + ln + EndLine()
+   }
+   block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)
+}
+#let AlertTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let AnnotationTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
+#let AttributeTok(s) = text(fill: rgb("#657422"),raw(s))
+#let BaseNTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let BuiltInTok(s) = text(fill: rgb("#003b4f"),raw(s))
+#let CharTok(s) = text(fill: rgb("#20794d"),raw(s))
+#let CommentTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
+#let CommentVarTok(s) = text(style: "italic",fill: rgb("#5e5e5e"),raw(s))
+#let ConstantTok(s) = text(fill: rgb("#8f5902"),raw(s))
+#let ControlFlowTok(s) = text(weight: "bold",fill: rgb("#003b4f"),raw(s))
+#let DataTypeTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let DecValTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let DocumentationTok(s) = text(style: "italic",fill: rgb("#5e5e5e"),raw(s))
+#let ErrorTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let ExtensionTok(s) = text(fill: rgb("#003b4f"),raw(s))
+#let FloatTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let FunctionTok(s) = text(fill: rgb("#4758ab"),raw(s))
+#let ImportTok(s) = text(fill: rgb("#00769e"),raw(s))
+#let InformationTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
+#let KeywordTok(s) = text(weight: "bold",fill: rgb("#003b4f"),raw(s))
+#let NormalTok(s) = text(fill: rgb("#003b4f"),raw(s))
+#let OperatorTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
+#let OtherTok(s) = text(fill: rgb("#003b4f"),raw(s))
+#let PreprocessorTok(s) = text(fill: rgb("#ad0000"),raw(s))
+#let RegionMarkerTok(s) = text(fill: rgb("#003b4f"),raw(s))
+#let SpecialCharTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
+#let SpecialStringTok(s) = text(fill: rgb("#20794d"),raw(s))
+#let StringTok(s) = text(fill: rgb("#20794d"),raw(s))
+#let VariableTok(s) = text(fill: rgb("#111111"),raw(s))
+#let VerbatimStringTok(s) = text(fill: rgb("#20794d"),raw(s))
+#let WarningTok(s) = text(style: "italic",fill: rgb("#5e5e5e"),raw(s))
+
+
+
+#let article(
+  title: none,
+  subtitle: none,
+  authors: none,
+  keywords: (),
+  date: none,
+  abstract-title: none,
+  abstract: none,
+  thanks: none,
+  cols: 1,
+  lang: "en",
+  region: "US",
+  font: none,
+  fontsize: 11pt,
+  title-size: 1.5em,
+  subtitle-size: 1.25em,
+  heading-family: none,
+  heading-weight: "bold",
+  heading-style: "normal",
+  heading-color: black,
+  heading-line-height: 0.65em,
+  mathfont: none,
+  codefont: none,
+  linestretch: 1,
+  sectionnumbering: none,
+  linkcolor: none,
+  citecolor: none,
+  filecolor: none,
+  toc: false,
+  toc_title: none,
+  toc_depth: none,
+  toc_indent: 1.5em,
+  doc,
+) = {
+  // Set document metadata for PDF accessibility
+  set document(title: title, keywords: keywords)
+  set document(
+    author: authors.map(author => content-to-string(author.name)).join(", ", last: " & "),
+  ) if authors != none and authors != ()
+  set par(
+    justify: true,
+    leading: linestretch * 0.65em
+  )
+  set text(lang: lang,
+           region: region,
+           size: fontsize)
+  set text(font: font) if font != none
+  show math.equation: set text(font: mathfont) if mathfont != none
+  show raw: set text(font: codefont) if codefont != none
+
+  set heading(numbering: sectionnumbering)
+
+  show link: set text(fill: rgb(content-to-string(linkcolor))) if linkcolor != none
+  show ref: set text(fill: rgb(content-to-string(citecolor))) if citecolor != none
+  show link: this => {
+    if filecolor != none and type(this.dest) == label {
+      text(this, fill: rgb(content-to-string(filecolor)))
+    } else {
+      text(this)
+    }
+   }
+
+  let has-title-block = title != none or (authors != none and authors != ()) or date != none or abstract != none
+  if has-title-block {
+    place(
+      top,
+      float: true,
+      scope: "parent",
+      clearance: 4mm,
+      block(below: 1em, width: 100%)[
+
+        #if title != none {
+          align(center, block(inset: 2em)[
+            #set par(leading: heading-line-height) if heading-line-height != none
+            #set text(font: heading-family) if heading-family != none
+            #set text(weight: heading-weight)
+            #set text(style: heading-style) if heading-style != "normal"
+            #set text(fill: heading-color) if heading-color != black
+
+            #text(size: title-size)[#title #if thanks != none {
+              footnote(thanks, numbering: "*")
+              counter(footnote).update(n => n - 1)
+            }]
+            #(if subtitle != none {
+              parbreak()
+              text(size: subtitle-size)[#subtitle]
+            })
+          ])
+        }
+
+        #if authors != none and authors != () {
+          let count = authors.len()
+          let ncols = calc.min(count, 3)
+          grid(
+            columns: (1fr,) * ncols,
+            row-gutter: 1.5em,
+            ..authors.map(author =>
+                align(center)[
+                  #author.name \
+                  #author.affiliation \
+                  #author.email
+                ]
+            )
+          )
+        }
+
+        #if date != none {
+          align(center)[#block(inset: 1em)[
+            #date
+          ]]
+        }
+
+        #if abstract != none {
+          block(inset: 2em)[
+          #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
+          ]
+        }
+      ]
+    )
+  }
+
+  if toc {
+    let title = if toc_title == none {
+      auto
+    } else {
+      toc_title
+    }
+    block(above: 0em, below: 2em)[
+    #outline(
+      title: toc_title,
+      depth: toc_depth,
+      indent: toc_indent
+    );
+    ]
+  }
+
+  doc
+}
+
+#set table(
+  inset: 6pt,
+  stroke: none
+)
+#let brand-color = (:)
+#let brand-color-background = (:)
+#let brand-logo = (:)
+
+#set page(
+  paper: "us-letter",
+  margin: (x: 2.5cm,y: 2.5cm,),
+  numbering: "1",
+  columns: 1,
+)
+// Logo is handled by orange-book's cover page, not as a page background
+// NOTE: marginalia.setup is called in typst-show.typ AFTER book.with()
+// to ensure marginalia's margins override the book format's default margins
+#import "@preview/orange-book:0.7.1": book, part, chapter, appendices
+
+#show: book.with(
+  title: [Socratic-DB],
+  subtitle: [Tutor socratico per la progettazione di basi di dati relazionali],
+  author: "Gionata Massi",
+  date: "2026-10-21",
+  lang: "it",
+  main-color: brand-color.at("primary", default: blue),
+  logo: {
+    let logo-info = brand-logo.at("medium", default: none)
+    if logo-info != none { image(logo-info.path, alt: logo-info.at("alt", default: none)) }
+  },
+  outline-depth: 3,
+  supplement-chapter: "Capitolo",
+)
+
+
+// Reset Quarto's custom figure counters at each chapter (level-1 heading).
+// Orange-book only resets kind:image and kind:table, but Quarto uses custom kinds.
+// This list is generated dynamically from crossref.categories.
+#show heading.where(level: 1): it => {
+  counter(figure.where(kind: "quarto-float-fig")).update(0)
+  counter(figure.where(kind: "quarto-float-tbl")).update(0)
+  counter(figure.where(kind: "quarto-float-lst")).update(0)
+  counter(figure.where(kind: "quarto-callout-Note")).update(0)
+  counter(figure.where(kind: "quarto-callout-Warning")).update(0)
+  counter(figure.where(kind: "quarto-callout-Caution")).update(0)
+  counter(figure.where(kind: "quarto-callout-Tip")).update(0)
+  counter(figure.where(kind: "quarto-callout-Important")).update(0)
+  counter(math.equation).update(0)
+  it
+}
+
+= Introduzione
+<introduzione>
+#strong[Sommario.] Questo documento descrive una proposta di strumento e metodologia didattica basata sul metodo socratico, per aiutare gli studenti ad acquisire la capacità di progettare e implementare basi di dati relazionali, dall'analisi concettuale al modello logico. Il processo mira a condurre lo studente a produrre una base di dati completa, pertinente, minimale e intelligibile a partire da una descrizione testuale del problema. La costruzione della conoscenza procede come dialogo tra l'arte della domanda, affidata a modelli linguistici, e il rigore della struttura, verificato mediante controlli logico-simbolici. Le abilità modellistiche e di programmazione sono oggetto di esercizio e feedback durante il percorso; la sperimentazione valuterà l'efficacia della proposta sulla base delle interazioni con il sistema, raccolte e trattate in forma pseudonimizzata secondo le regole definite per lo studio.
+
+#strong[Socratic-DB] è un ambiente di apprendimento assistito dall'Intelligenza Artificiale Generativa per la scuola secondaria di secondo grado (ITE indirizzo #emph[Sistemi Informativi Aziendali] e ITT indirizzo #emph[Informatica]) e per corsi universitari introduttivi di basi di dati.
+
+Il progetto nasce da un principio pedagogico ed epistemologico chiaro: #strong[contrastare la delega cognitiva (#emph[cognitive offloading])] che sta avvenendo con l'uso acritico degli strumenti di #emph[Generative Artificial Intelligence] (GenIA). In questa proposta, il sistema non impiega i #emph[Large Language Model] (LLM) per risolvere i problemi o scrivere codice al posto dello studente, ma come #strong[tutor socratici]:
+
++ #strong[La mediazione maieutica è affidata all'LLM]: attraverso domande mirate, controesempi concreti ed elicitazione progressiva dei vincoli (livelli di aiuto graduati da L0 a L4), il tutor guida lo studente nell'individuare errori concettuali e nel motivare formalmente ogni scelta di modellizzazione.
++ #strong[La verità tecnica risiede in controlli deterministici]: l'LLM non valuta la correttezza formale. La validazione sintattica, il calcolo della chiusura degli attributi, la verifica delle forme normali (2NF, 3NF, BCNF) e l'esecuzione di DDL e query SQL sono affidati a un runtime deterministico e a un esecutore isolato SQLite.
++ #strong[La valutazione resta prerogativa esclusiva del docente]: il sistema non assegna voti, non stila punteggi né profila gli studenti. La verifica dell'apprendimento effettivo avviene tramite prove individuali in presenza senza ausilio del tutor (#emph[prova di trasferimento]).
+
+== Piani di verifica della sperimentazione
+<piani-di-verifica-della-sperimentazione>
+La fattibilità e l'efficacia didattica della proposta sono da sperimentare su più piani (il dettaglio metodologico è approfondito nel documento di sperimentazione):
+
+- #strong[Piano del modello linguistico.] Non sappiamo se tra le proprietà emergenti dei LLM ci siano l'abilità maieutica e la capacità elicitativa che vorremmo. #emph[Verifica:] golden set di casi noti (#ref(<sec-test-tutor-llm>, supplement: [Sezione])\; #ref(<sec-disegno-ricerca>, supplement: [Sezione])).
+- #strong[Piano dell'infrastruttura di calcolo deterministica.] Un sistema che esegua i controlli e i processi richiesti è complesso: fattibilità e scalabilità non sono stimabili a priori, in assenza di prove empiriche. #emph[Verifica:] test dei controlli deterministici (#ref(<sec-test-controlli-deterministici>, supplement: [Sezione])) e studio pilota (#ref(<sec-disegno-ricerca>, supplement: [Sezione])).
+- #strong[Piano dell'efficacia didattica.] Non è possibile stabilirla a priori: servono test diagnostici pre e post sperimentazione per misurare l'incremento delle prestazioni. #emph[Verifica:] pre-test, post-test e prova di trasferimento (#ref(<sec-disegno-ricerca>, supplement: [Sezione])).
+- #strong[Piano della progressione didattica.] Il metodo e le fasi appaiono ben definiti per granularità e misurabilità, ma ciò va validato sperimentalmente: la suddivisione attuale potrebbe produrre un lavoro ingestibile per il docente o per lo studente, oppure risultare inefficace o inefficiente. #emph[Verifica:] osservazione nello studio pilota (#ref(<sec-disegno-ricerca>, supplement: [Sezione])) e analisi dei risultati (#ref(<sec-analisi-risultati>, supplement: [Sezione])).
+- #strong[Piano della sostenibilità per il docente.] Il tempo di preparazione delle tracce e di revisione dei risultati deve essere compatibile con classi numerose e tempi stretti (#ref(<sec-sostenibilita-docente>, supplement: [Sezione])). #emph[Verifica:] misura dei tempi nel pilota (#ref(<sec-raccolta-metriche>, supplement: [Sezione])).
+
+#horizontalrule
+
+== Struttura del documento
+<struttura-del-documento>
+La documentazione del progetto è strutturata nei seguenti moduli tematici:
+
+- #link("01_stato_dell_arte.md")[Stato dell'arte e inquadramento teorico]: Intelligent Tutoring Systems, Socratic prompting, neuro-simbolico e quadro di ricerca.
+- #link("02_quadro_pedagogico.md")[Quadro pedagogico]: destinatari (ITE SIA, ITT Informatica, università), prerequisiti, obiettivi di apprendimento (O1--O8) e ruoli.
+- #link("03_protocollo_didattico.md")[Protocollo didattico]: le nove fasi in cinque consegne, livelli di aiuto L0--L4, ciclo di revisione e sostenibilità docente.
+- #link("04_architettura_sistema.md")[Architettura del sistema]: orchestratore a stati finiti (FSM), sandbox SQLite isolata, hardware GPU on-premise, system prompt e GitLab CI.
+- #link("05_formati_e_schemi.md")[Specifiche dei formati e contratti dati]: specifiche YAML validato per modelli concettuali e relazionali, formati di consegna e report.
+- #link("06_normativa_e_sicurezza.md")[Quadro normativo, sicurezza e privacy]: conformità GDPR, AI Act per sistemi scolastici, protezione da prompt injection e limiti noti.
+- #link("07_sperimentazione.md")[Protocollo di sperimentazione]: disegno della ricerca, pre/post-test, pilota, metriche e criteri di successo.
+- #link("riferimenti.bib")[Bibliografia]: riferimenti in formato BibTeX.
+
+= Stato dell'arte e inquadramento teorico
+<sec-stato-arte>
+== Introduzione e contesto
+<sec-introduzione-contesto>
+I modelli linguistici di grandi dimensioni (#emph[Large Language Models], LLM) hanno reso disponibili interfacce conversazionali capaci di produrre spiegazioni, esempi e codice in linguaggio naturale. Nella didattica dell'informatica, questa possibilità apre opportunità per sostenere l'esplorazione e il feedback, ma pone anche questioni relative all'affidabilità delle risposte, al ruolo attivo dello studente e alla valutazione dell'apprendimento @becker2023programming@denny2024computing@prather2023robots. Questi contributi discutono opportunità e criticità dell'IA generativa nell'istruzione e formazione informatica; non dimostrano, da soli, che un particolare modello o assetto didattico migliori gli apprendimenti in ogni contesto.
+
+Nel progetto di basi di dati relazionali, l'attività non si esaurisce nella produzione di una query eseguibile. Richiede di interpretare requisiti, costruire un modello concettuale, tradurlo in uno schema relazionale, esplicitare chiavi e vincoli e formulare interrogazioni coerenti con il significato del problema. Il modello relazionale costituisce un riferimento teorico per la rappresentazione dei dati e delle relazioni tra essi @codd1970relational, mentre il modello Entità/Associazioni è uno dei riferimenti classici per la progettazione concettuale @chen1976entity. La correttezza di una soluzione va quindi esaminata a più livelli: sintassi, proprietà formali dello schema, comportamento delle query e adeguatezza rispetto ai requisiti. Un controllo su un singolo insieme di dati, da solo, non prova la correttezza generale della soluzione.
+
+#strong[Socratic-DB] è una proposta di supporto alla progettazione e all'apprendimento delle basi di dati che combina tre componenti con responsabilità distinte:
+
++ #strong[Controlli formalizzati], per verificare le proprietà che possono essere espresse in modo deterministico, come vincoli strutturali, alcune proprietà dello schema e risultati dell'esecuzione SQL.
++ #strong[Tutor conversazionale basato su LLM], per porre domande, richiedere motivazioni, proporre controesempi e graduare gli aiuti, senza assumere che il modello segua sempre tali vincoli.
++ #strong[Docente], cui restano il giudizio sulle interpretazioni del dominio, la revisione delle diagnosi non formalizzabili e le decisioni valutative.
+
+L'integrazione di questi componenti è una scelta progettuale, non una prova preventiva di correttezza complessiva o di efficacia didattica. Le domande di ricerca riguardano l'affidabilità dei controlli, la fedeltà del tutor al comportamento atteso, l'apprendimento autonomo e il trasferimento a problemi nuovi. Le ipotesi e il disegno di verifica sono descritti nel #ref(<sec-protocollo-sperimentazione>, supplement: [Capitolo]).
+
+#horizontalrule
+
+== Sistemi di Tutorato Intelligente e didattica dei database
+<sec-its-database>
+I #emph[Sistemi di Tutorato Intelligente] (#emph[Intelligent Tutoring Systems], ITS) costituiscono un precedente importante per il feedback automatizzato in domini tecnici. In questo ambito, il lavoro su SQL-Tutor di Mitrović illustra l'impiego del #emph[Constraint-Based Modeling] (CBM): il sistema confronta la soluzione dello studente con vincoli disciplinari espliciti e può restituire feedback sulle violazioni individuate @mitrovic1998sql@mitrovic2003cbm. Questo approccio offre un riferimento per rendere espliciti i criteri di controllo. Non implica, tuttavia, che ogni soluzione semanticamente valida possa essere riconosciuta automaticamente, né che lo stesso modello possa essere trasferito senza adattamenti a tutte le fasi della progettazione di una base di dati.
+
+Socratic-DB condivide con gli approcci basati su vincoli l'idea di non affidare ogni giudizio tecnico alla generazione linguistica. La differenza proposta è l'ambito del percorso: oltre alla formulazione di query, il sistema considera analisi dei requisiti, modellazione concettuale, schema relazionale, implementazione e interrogazione. I controlli sono destinati a coprire proprietà esplicitamente formalizzate; la loro copertura effettiva deve essere misurata, e la correttezza semantica rispetto alla traccia non va considerata automaticamente risolta. Le checklist e i casi di prova richiedono definizione, revisione e manutenzione, mentre il docente deve poter riesaminare possibili falsi positivi o soluzioni alternative.
+
+L'esecuzione di query su un database di prova permette di osservare risultati concreti e riproducibili. È però una forma di evidenza circoscritta: una query che produce il risultato atteso su un dataset potrebbe comportarsi diversamente su dati differenti o non rispettare tutti i requisiti. Per questo Socratic-DB propone di affiancare l'esecuzione a controlli strutturali e a un dialogo che chieda allo studente di motivare le proprie scelte, senza trattare nessuna di queste fonti come sufficiente in isolamento.
+
+=== Errori e misconcezioni nella formulazione di query SQL
+<sec-errori-sql>
+La ricerca sull'apprendimento di SQL analizza difficoltà e misconcezioni che possono emergere mentre gli studenti formulano query. Miedema, Aivaloglou e Fletcher studiano il ragionamento dei principianti attraverso un protocollo #emph[think-aloud] @miedema2021misconceptions\; Taipalus, Siponen e Vartiainen esaminano errori e complicazioni ricorrenti nella formulazione di query @taipalus2018errors. Il lavoro di Miedema sulla formazione sui sistemi di dati offre ulteriore contesto per scomporre i concetti e le difficoltà del dominio @miedema2024learning. Questi studi motivano l'attenzione a diagnosi più specifiche del solo messaggio d'errore del DBMS, ma i risultati ottenuti su compiti SQL non vanno trasferiti automaticamente alla modellazione concettuale o alla progettazione relazionale.
+
+Ponzini, Guerrini e Catania propongono una revisione delle tassonomie degli errori SQL basata sulla rilevazione automatizzata @ponzini2026taxonomy. Questo filone è pertinente alla progettazione di report e categorie d'errore: una classificazione esplicita può rendere le diagnosi più confrontabili e consentire di studiare quali difficoltà ricorrono. La classificazione automatica, tuttavia, non garantisce da sola che una diagnosi sia corretta in ogni caso, che distingua sempre un errore da una soluzione alternativa valida o che il feedback migliori l'apprendimento.
+
+La proposta di Socratic-DB è di usare categorie di errore e controlli formalizzati come supporto al dialogo, non come sostituti del ragionamento dello studente o della revisione del docente. La tassonomia dovrà essere adattata al compito specifico, soprattutto quando il problema riguarda l'interpretazione dei requisiti e non soltanto la sintassi o la semantica di una query.
+
+=== Modelli mentali e spiegazioni dei sistemi di dati
+<sec-modelli-mentali-dati>
+Miedema et al.~discutono il concetto di #emph[notional machine] per spiegare concetti dei sistemi di dati nell'insegnamento dell'informatica @miedema2025notional. Questo lavoro è pertinente alla scelta di non limitare il feedback alla forma testuale di una query: l'apprendimento richiede anche di costruire e verificare un modello di ciò che la query o lo schema rappresentano e producono. In Socratic-DB, una possibile traduzione progettuale consiste nel chiedere allo studente di prevedere il comportamento di una query, motivare una scelta di schema e poi confrontare la previsione con l'esecuzione o con un controesempio. L'utilità di questa sequenza per il sistema proposto resta un'ipotesi da verificare.
+
+=== Generazione di esercizi SQL con LLM e validazione
+<sec-esercizi-sql-llm>
+I lavori sulla generazione personalizzata di esercizi SQL con LLM e validazione basata su vincoli @ponzini2026sql@catania2026exercises affrontano un problema vicino, ma distinto, da quello del tutoraggio dialogico: produrre esercizi e controllarne determinate proprietà non equivale a guidare uno studente nella modellazione, nella revisione di una soluzione o nella giustificazione delle scelte. Per Socratic-DB, la lezione progettuale è circoscritta: quando si usa un modello generativo per produrre materiale o spiegazioni, è opportuno esplicitare quali proprietà sono validate e quali rimangono da revisionare.
+
+Un esempio di attività didattica in questo ambito è il laboratorio «Apprendimento di SQL basato su errori frequenti» di Guerrini e Ponzini, pubblicato negli atti ITADINFO 2026 @guerrini2026sqlerrors. Il laboratorio propone attività per far emergere e classificare errori, discutere possibili misconcezioni e usare IA generativa per spiegazioni ed esercizi mirati. Il contributo richiama anche LensQL come tutor e RelaX come strumento per l'algebra relazionale @ponzini2026sql@ponzini2026taxonomy. Si tratta di un antecedente per l'uso didattico dell'analisi degli errori e di strumenti di supporto; la descrizione dell'attività non va interpretata come prova sperimentale dell'efficacia di Socratic-DB o di un tutor LLM nella progettazione completa di basi di dati.
+
+#horizontalrule
+
+== LLM nell'istruzione informatica e tutoraggio dialogico
+<sec-llm-istruzione>
+=== Opportunità e rischi dell'uso generativo
+<sec-cognitive-offloading>
+Gli studi sull'IA generativa nell'istruzione alla programmazione discutono opportunità e criticità degli strumenti capaci di produrre direttamente codice o risposte @becker2023programming@denny2024computing@prather2023robots. Il possibile effetto sull'apprendimento dipende dal compito, dal livello dello studente, dal tipo di assistenza e da come viene organizzata l'attività; non è corretto assumere un effetto uniforme in tutti i contesti.
+
+Quando un sistema fornisce direttamente una soluzione completa, esiste il rischio che lo studente accetti il risultato senza saperlo spiegare, verificare o trasferire a un problema diverso. Per Socratic-DB questo è un rischio progettuale da affrontare, non un effetto dato per dimostrato. Per valutarlo si propone di osservare non solo il prodotto finale, ma anche le motivazioni espresse, le revisioni effettuate e la capacità di affrontare una traccia nuova senza assistenza. La prova di trasferimento e il progetto di sperimentazione sono descritti nel #ref(<sec-disegno-ricerca>, supplement: [Sezione]).
+
+=== Tutoraggio dialogico, scaffolding e limiti degli LLM
+<sec-scaffolding-socratico>
+Bloom discute la differenza tra tutoraggio individuale e istruzione di gruppo e il problema di trasferire i benefici del primo a contesti più ampi @bloom1984two. Vygotskij costituisce un riferimento teorico per il ruolo dell'interazione e della mediazione nell'apprendimento e per il concetto di Zona di Sviluppo Prossimale @vygotsky1978mind. Questi riferimenti forniscono un quadro pedagogico generale; non dimostrano direttamente che un LLM che pone domande socratiche produca gli stessi effetti di un tutor umano, né che il dialogo, da solo, garantisca l'apprendimento.
+
+Macina et al.~studiano opportunità e limiti dei tutor dialogici neurali in compiti di apprendimento linguistico. Gli autori rilevano che le prestazioni sono migliori in scenari didattici vincolati e più deboli in scenari meno circoscritti, e riportano errori di ragionamento in una quota significativa delle conversazioni valutate @macina2023opportunities. Il risultato è rilevante come avvertimento metodologico: un LLM non deve essere considerato un tutor affidabile soltanto perché produce un dialogo plausibile. Il dominio studiato non coincide con la progettazione di basi di dati, quindi le conclusioni non vanno trasferite direttamente a Socratic-DB.
+
+Socratic-DB traduce questi riferimenti in ipotesi di progetto: chiedere allo studente di esplicitare il ragionamento, formulare domande circoscritte, proporre controesempi e graduare il livello di aiuto, evitando per quanto possibile di fornire subito una soluzione completa. Queste regole devono essere valutate separatamente dalla correttezza tecnica: il tutor può non rispettare il comportamento atteso o formulare una diagnosi errata, e la presenza di un prompt non garantisce da sola la conformità. La fedeltà del dialogo, la qualità delle spiegazioni e l'effetto sugli apprendimenti sono pertanto oggetti di verifica distinti.
+
+#horizontalrule
+
+== Architettura ibrida: controlli formali, esecuzione e dialogo
+<sec-approccio-neuro-simbolico>
+Socratic-DB propone un'architettura ibrida in cui il modello linguistico non è l'unica fonte di giudizio tecnico. I controlli deterministici sono usati solo per proprietà che siano state definite formalmente e implementate; l'esecuzione SQL permette di osservare il comportamento su un insieme di dati specifico; l'LLM sostiene il dialogo e il docente mantiene la responsabilità delle decisioni non automatizzabili. In questo testo, «ibrida» descrive la ripartizione progettuale dei compiti e non implica una garanzia generale di correttezza.
+
+#table(
+  columns: (33.33%, 33.33%, 33.33%),
+  align: (auto,auto,auto,),
+  table.header([Limite da considerare], [Conseguenza per l'attività], [Scelta progettuale di Socratic-DB],),
+  table.hline(),
+  [#strong[Risposte linguistiche non affidabili]], [Un LLM può formulare affermazioni errate o non coerenti con la diagnosi tecnica.], [Separare le diagnosi prodotte dai controlli formalizzati dal testo generato dal tutor; sottoporre a verifica le risposte del tutor.],
+  [#strong[Verifica limitata al comportamento osservato]], [Una query può produrre il risultato atteso sui dati di prova e fallire su altri dati o requisiti.], [Eseguire query su dati di test progettati per coprire casi significativi e dichiarare esplicitamente l'ambito della verifica.],
+  [#strong[Comportamento dialogico non garantito]], [Il modello può fornire la soluzione troppo presto, essere incoerente o assecondare un'affermazione scorretta.], [Definire livelli di aiuto e regole per il tutor, registrare le interazioni e valutare la conformità su casi di prova.],
+  [#strong[Controlli incompleti o troppo rigidi]], [Proprietà non formalizzate possono sfuggire; controlli eccessivamente restrittivi possono respingere soluzioni valide.], [Documentare l'ambito di ogni controllo, testare soluzioni alternative e prevedere la revisione del docente.],
+  [#strong[Separazione tra prodotto e apprendimento]], [Una soluzione corretta non prova che lo studente sappia giustificarla o riprodurla autonomamente.], [Valutare separatamente il prodotto, il processo di revisione e il trasferimento senza tutor.],
+)
+La tabella descrive rischi da gestire e decisioni proposte, non risultati sperimentali già ottenuti. In particolare, l'esecuzione in SQLite può verificare che una query sia eseguibile e osservare il suo risultato su dati specifici, ma non dimostra da sola la correttezza rispetto a ogni interpretazione della traccia. Analogamente, i controlli sullo schema possono verificare solo le proprietà coperte dalla loro implementazione e non sostituiscono la revisione semantica del dominio.
+
+#horizontalrule
+
+== Contributo della proposta e questioni aperte
+<sec-contributo-questioni-aperte>
+Sulla base dei sistemi e dei filoni esaminati, il contributo progettuale che Socratic-DB intende esplorare è l'integrazione, in un unico percorso didattico, di:
+
+- analisi dei requisiti e modellazione concettuale;
+- traduzione nello schema relazionale e considerazione dei vincoli;
+- generazione o verifica dell'implementazione e dei dati di prova;
+- scrittura, esecuzione e revisione di query SQL;
+- dialogo guidato da domande, motivazioni e controesempi;
+- controlli deterministici per le sole proprietà formalizzate;
+- valutazione dell'apprendimento separata dalla valutazione automatica del prodotto.
+
+Non si sostiene che ciascuna componente sia nuova in assoluto. Il valore distintivo da verificare è la loro integrazione nel percorso completo, con una separazione esplicita tra controllo formale, mediazione linguistica e giudizio del docente. Rispetto ai sistemi centrati sulla query, Socratic-DB intende includere anche le fasi precedenti di analisi e progettazione; rispetto agli strumenti di generazione di esercizi, si concentra sul dialogo relativo al tentativo dello studente; rispetto a un LLM usato senza controlli esterni, prevede verifiche formalizzate ed esecuzione SQL; rispetto a un sistema interamente deterministico, usa un modello linguistico per interagire in linguaggio naturale. Queste differenze descrivono l'obiettivo architetturale e didattico, non una superiorità empiricamente dimostrata.
+
+La sperimentazione dovrà distinguere almeno quattro aspetti:
+
+- #strong[Affidabilità tecnica:] quali errori rilevano i controlli, quali soluzioni alternative accettano e quali falsi positivi o negativi producono?
+- #strong[Fedeltà del tutor:] il modello rispetta i livelli di aiuto, pone domande pertinenti e non introduce diagnosi errate o soluzioni premature?
+- #strong[Apprendimento e trasferimento:] gli studenti migliorano nella progettazione autonoma e riescono a lavorare su una traccia nuova senza tutor?
+- #strong[Fattibilità:] i tempi, il carico di revisione per il docente e l'usabilità sono sostenibili nel contesto didattico previsto?
+
+Queste domande richiedono evidenze diverse: un insieme di casi attesi e test negativi per i controlli; revisione umana delle risposte del tutor; prove iniziali e finali, possibilmente accompagnate da una prova di trasferimento; osservazioni di fattibilità. Un miglioramento osservato in un singolo pilota, soprattutto in assenza di un confronto adeguato, non basta a dimostrare che l'effetto sia causato dal tutor. Il protocollo è descritto nel #ref(<sec-protocollo-sperimentazione>, supplement: [Capitolo]).
+
+#horizontalrule
+
+== Quadro normativo e protezione dei dati
+<sec-quadro-normativo-scuola>
+L'uso di strumenti di IA in contesti scolastici richiede una valutazione del trattamento dei dati personali e delle finalità effettive del sistema. Il GDPR stabilisce principi e obblighi relativi, tra l'altro, a liceità, limitazione delle finalità, minimizzazione, esattezza, conservazione e sicurezza dei dati @gdpr2016. Non è corretto ricavare dal Regolamento un divieto generale di usare qualsiasi fornitore cloud: la liceità e le condizioni del trattamento dipendono dal caso concreto, dalla base giuridica, dai ruoli dei soggetti, dagli accordi applicabili, dalle misure di sicurezza e, quando pertinente, dalle regole sui trasferimenti di dati.
+
+L'articolo 22 del GDPR riguarda determinate decisioni basate unicamente su trattamenti automatizzati che producano effetti giuridici o incidano in modo analogamente significativo sull'interessato, nei limiti e con le eccezioni previste dal Regolamento. Non è quindi corretto descriverlo come un divieto assoluto di ogni decisione automatizzata, né come un generico diritto alla spiegabilità applicabile indistintamente a ogni output di un LLM. In Socratic-DB, la scelta progettuale è che il sistema non assegni voti né sostituisca il docente nelle decisioni valutative; ciò va tradotto in procedure operative coerenti con il contesto istituzionale.
+
+Il Regolamento europeo sull'Intelligenza Artificiale (AI Act) include nell'Allegato III, punto 3, determinate categorie di sistemi destinati all'istruzione e alla formazione professionale, tra cui alcuni sistemi destinati a valutare i risultati dell'apprendimento o a orientare il processo di apprendimento. La classificazione dipende dalla finalità prevista e dall'uso concreto del sistema; non è possibile stabilirla soltanto sulla base del nome del progetto o dell'affermazione che non assegna voti. La qualificazione applicabile a Socratic-DB dovrà essere verificata alla luce del testo normativo e delle disposizioni pertinenti con i referenti istituzionali competenti @eu_ai_act_2024.
+
+L'esecuzione on-premise, se adottata, può ridurre il trasferimento di dati a servizi esterni, ma non costituisce da sola una garanzia assoluta di conformità o riservatezza. Occorre considerare configurazione di rete, autenticazione, autorizzazioni, log, conservazione dei dati, aggiornamenti e procedure di gestione degli incidenti. La minimizzazione dei dati raccolti e l'uso di identificativi non direttamente riconducibili agli studenti, quando appropriato, sono misure da valutare nel quadro complessivo del trattamento, non sostituti degli altri obblighi applicabili.
+
+#horizontalrule
+
+== Sintesi del posizionamento
+<sintesi-del-posizionamento>
+La letteratura presa in esame offre riferimenti per il feedback basato su vincoli, l'analisi degli errori SQL, la spiegazione dei modelli mentali dei sistemi di dati e l'impiego di LLM nell'istruzione informatica. Non fornisce, nel suo insieme, una prova diretta dell'efficacia di Socratic-DB: i lavori citati riguardano sistemi, compiti e contesti differenti.
+
+La differenza che la proposta intende mettere alla prova è l'integrazione di un percorso che attraversa le principali fasi della progettazione di basi di dati con un tutor dialogico, controlli deterministici circoscritti e un'esecuzione SQL reale, mantenendo espliciti i limiti di ciascun componente e la responsabilità del docente. L'eventuale valore aggiunto dovrà essere stabilito empiricamente rispetto a criteri dichiarati: affidabilità tecnica, qualità del dialogo, apprendimento autonomo, trasferimento e fattibilità didattica.
+
+= Specifica pedagogica
+<sec-specifica-pedagogica>
+== Destinatari
+<sec-destinatari>
+Studenti del secondo biennio e del quinto anno di un Istituto Tecnico Economico (ITE), indirizzo «Amministrazione, Finanza e Marketing», articolazione «Sistemi Informativi Aziendali» (SIA, codice ITSI), o di un Istituto Tecnico Tecnologico (ITT), indirizzo «Informatica e Telecomunicazioni», articolazione «Informatica» (codice ITIA), in classi da 5 a 20 persone, con lavoro individuale o a coppie.
+
+Il sistema è progettato tenendo conto dei quadri di riferimento e dei nuclei fondanti della seconda prova scritta dell'Esame di Stato per le discipline d'indirizzo. I quadri di riferimento di ITIA e ITSI includono tra i nuclei la progettazione concettuale, logica e fisica di basi di dati e i linguaggi per basi di dati; la disciplina della seconda prova varia da un anno all'altro. Tali prove richiedono di ricavare le specifiche progettuali da una traccia reale, sviluppare la modellizzazione concettuale del problema, tradurla nel modello logico-relazionale, realizzare la base di dati e formulare le query di interrogazione in linguaggio SQL.
+
+La sperimentazione può inoltre essere estesa e adattata come supporto all'auto-apprendimento guidato in un primo corso universitario di «Basi di Dati» (lauree triennali in Informatica o Ingegneria Informatica).
+
+== Prerequisiti
+<sec-prerequisiti>
+- #strong[Matematica e logica di base]:
+  - concetti elementari della teoria degli insiemi (rappresentazione, appartenenza, unione, intersezione, differenza/complementazione, prodotto cartesiano e concetto di relazione);
+  - fondamenti di logica proposizionale e predicativa (valori di verità, connettivi logici #NormalTok("NOT");, #NormalTok("AND");, #NormalTok("OR");).
+- #strong[Concetti introduttivi di modellizzazione e basi di dati]:
+  - comprensione intuitiva del modello concettuale (entità, associazione, attributo, cardinalità min/max e concetti base di gerarchia/specializzazione);
+  - strutture del modello relazionale (concetti informali di tabella, riga/tupla, colonna/attributo, chiave primaria, chiave esterna e vincoli fondamentali di integrità).
+- #strong[Linguaggio SQL di base]:
+  - familiarità elementare con la sintassi SQL per le interrogazioni semplici (clausole #NormalTok("SELECT");, #NormalTok("FROM");, #NormalTok("WHERE");); il consolidamento di interrogazioni complesse (#NormalTok("JOIN");, aggregazioni #NormalTok("GROUP BY"); e sottoquery) è uno degli obiettivi formativi del percorso.
+- #strong[Competenze digitali e strumentali]:
+  - uso base di un editor di testo o ambiente di sviluppo (IDE) e familiarità con i comandi fondamentali da terminale/CLI;
+  - nozioni elementari di Git (#NormalTok("commit");, #NormalTok("push"); e consegne tramite repository).
+
+== Obiettivi di apprendimento
+<sec-obiettivi-apprendimento>
+Al termine lo studente è in grado di, #strong[autonomamente e senza tutor]:
+
+- #strong[O1.] Ricavare da una traccia i dati, le operazioni e i vincoli (espliciti e impliciti), distinguendo ciò che è dichiarato da ciò che è assunto.
+- #strong[O2.] Costruire un modello concettuale Entità/Associazioni (#emph[Entity/Relationship], ER) con entità, attributi, associazioni, cardinalità minime e massime, e motivare ogni scelta.
+- #strong[O3.] Distinguere i vincoli rappresentabili nello schema da quelli che richiedono altri meccanismi (#NormalTok("CHECK");, #NormalTok("UNIQUE");, trigger, controllo applicativo).
+- #strong[O4.] Tradurre il modello concettuale in schema relazionale scegliendo strategie adeguate per gerarchie, associazioni 1:1 opzionali e obbligatorie, associazioni 1:N e associazioni N:M, trattando i valori nulli e verificando la normalizzazione (1NF, 2NF, 3NF; BCNF se giustificata).
+- #strong[O5.] Codificare lo schema usando i costrutti del #emph[Data Definition Language] (DDL) di SQLite, con tipi e vincoli appropriati.
+- #strong[O6.] Costruire dati di test significativi, inclusi casi limite, nulli e assenza di corrispondenze, codificandoli con istruzioni del #emph[Data Manipulation Language] (DML) di SQLite.
+- #strong[O7.] Scrivere query SQL corrette, verificarle su dati propri e motivarne la correttezza.
+- #strong[O8.] Rivedere la propria soluzione a partire da un feedback e giustificare la modifica. Apprendere un modello di sviluppo iterativo in cui la critica di ogni scelta conduce a un modello via via più completo, pertinente, minimale, intelligibile e coerente.
+
+== Ruoli
+<sec-ruoli>
+=== Docente
+<docente>
+- Sceglie o inserisce la traccia (dal catalogo o da prove d'esame) e #strong[valida] la checklist dei requisiti proposta dallo strumento d'autore. Facoltativamente fornisce uno schema canonico con dataset e query attese, per il controllo automatico dei risultati nella fase 8. Non scrive soluzioni alternative, dati di riferimento né test.
+- Decide la sequenza, i tempi e i livelli di aiuto massimi consentiti per ciascun esercizio, e se abilitare la generazione automatica del DDL (fase 6) e dei dati di test (fase 7).
+- Legge le consegne (commit e Merge Request) e il report compatto del processo; legge a campione motivazioni e dialoghi; commenta in modo umano.
+- Esamina le segnalazioni di falsi positivi (soluzioni valide respinte) e decide se correggere la checklist o il controllo.
+- #strong[È l'unico a esprimere valutazioni.] Conduce la prova individuale di trasferimento.
+- Revisiona periodicamente un campione di dialoghi per individuare errori del tutor LLM.
+
+=== LLM (tutor)
+<llm-tutor>
+- Compito principale: trasformare le #emph[diagnosi strutturate] prodotte dai controlli deterministici in una risposta socratica, al livello di aiuto richiesto dallo stato del dialogo. Le diagnosi sono vincolanti: la LLM non le contraddice.
+- Chiede allo studente di motivare le scelte e di riformulare.
+- Non assegna punteggi, non dichiara «superato/non superato», non fornisce la soluzione completa, non esegue SQL.
+- Dove non c'è diagnosi deterministica (decisioni progettuali e correttezza semantica di cardinalità e query), formula domande e controesempi, dichiarando che esistono più soluzioni accettabili.
+- Si comporta come sistema esperto che valuta costantemente, ma fornisce il proprio punto di vista #strong[solo su richiesta] (salvo nella fase 8, dove il parere sul risultato delle query fa parte del dialogo) e dichiarandolo #emph[non vincolante] (a differenza delle diagnosi deterministiche), su:
+  - l'eliminazione delle ambiguità terminologiche e semantiche;
+  - la completezza rispetto alle specifiche e alla possibilità di formulare le interrogazioni richieste dal testo;
+  - la correttezza del modello e dei vincoli, oppure della sintassi, rispetto ai costrutti del modello in uso;
+  - la minimalità, intesa come non ridondanza nei modelli e come realizzazione di query efficienti che non richiedono elaborazioni non necessarie;
+  - la pertinenza del lessico rispetto al testo e al dominio.
+- Procede in modo maieutico ai livelli di aiuto L0--L2 e passa all'elicitazione ai livelli L3--L4.
+- Nella fase 7, se il docente abilita la generazione automatica, propone i dati di test (istruzioni INSERT) coerenti con lo schema dello studente; l'output è sempre sottoposto a verifica deterministica.
+- Nella fase 8 riceve dall'esecutore il risultato della query sui dati di test e formula un parere non vincolante sulla corrispondenza tra richiesta, query e risultato, trasformandolo in domande (righe attese, mancanti o duplicate); non scrive la query corretta.
+- Se incerto, richiede di contattare il docente.
+
+=== Sistema deterministico (orchestratore e controlli)
+<sistema-deterministico-orchestratore-e-controlli>
+- Mantiene lo stato del percorso, valida i formati, esegue operazioni sullo schema (DDL), sui dati (DML) e sulle query (QL) in SQLite isolato e produce le diagnosi. Deriva dallo schema dello studente i test negativi e la copertura strutturale dei dati di test, verifica i dati proposti dalla LLM nella fase 7 e, se abilitato, genera il DDL dal modello relazionale consegnato. Passa al tutor il risultato delle query. Con lo schema canonico opzionale confronta i risultati con le query attese.
+
+== Verifica dell'apprendimento: prodotto, processo, trasferimento
+<sec-verifica-apprendimento>
+La qualità della soluzione finale non dimostra che lo studente l'abbia compresa. Si raccolgono evidenze distinte:
+
+#table(
+  columns: (33.33%, 33.33%, 33.33%),
+  align: (auto,auto,auto,),
+  table.header([Dimensione], [Evidenza], [Fonte],),
+  table.hline(),
+  [Qualità progettuale], [Schema corretto, completo, pertinente, minimale], [Controlli deterministici + lettura del docente],
+  [Ragionamento], [Motivazioni di cardinalità, chiavi e vincoli], [Campo #NormalTok("motivazione"); nei file + dialogo (lettura del docente)],
+  [Revisione], [Correzione autonoma dopo feedback], [Storia dei commit e dei livelli di aiuto richiesti],
+  [Competenza SQL], [Query eseguibili e corrette su dati significativi], [Esecuzione automatica sui dati di test; parere non vincolante del tutor],
+  [Trasferimento], [Soluzione di una traccia nuova, senza assistenza], [Prova individuale in aula, valutata dal docente],
+)
+Solo l'ultima riga, insieme alla lettura umana delle altre, concorre alla valutazione scolastica.
+
+== Rischi didattici e contromisure
+<sec-rischi-didattici>
+- #strong[Tutor come sistema di sblocco.] Chi deve raggiungere una soglia ottimizza il punteggio, non la comprensione. #emph[Contromisura:] nessuna soglia; l'avanzamento è consigliato, non vincolato; i punti aperti restano visibili.
+- #strong[Delega del pensiero.] #emph[Contromisura:] ogni consegna richiede una motivazione scritta dallo studente; richiesta di aiuto ai livelli alti registrata; prova finale senza tutor.
+- #strong[Giudizi non riproducibili.] #emph[Contromisura:] ogni affermazione sulla correttezza proviene da un controllo deterministico ripetibile.
+- #strong[Fiducia eccessiva nel tutor.] #emph[Contromisura:] il tutor dichiara quando non è certo e rimanda al docente.
+
+= Protocollo didattico
+<sec-protocollo-didattico>
+== Il percorso: nove fasi in cinque consegne
+<sec-percorso-consegne>
+Il percorso ha #strong[nove fasi] di verifica, raggruppate in #strong[cinque consegne] per contenere il carico di consegna e di tracciamento. Le prime quattro consegne si svolgono con il tutor; la quinta è individuale e senza tutor. Ogni consegna mantiene file e criteri distinti per ciascuna fase che contiene, così lo stato di padronanza resta per competenza. Il percorso distingue progettazione concettuale e logica, chiarisce i vincoli e introduce verifiche effettive dell'esecuzione SQL.
+
+#table(
+  columns: (25%, 25%, 25%, 25%),
+  align: (auto,auto,auto,auto,),
+  table.header([Consegna], [Fasi], [Contenuto], [Automazione],),
+  table.hline(),
+  [C1. Requisiti e glossario], [1--2], [File di requisiti e glossario], [Controllo deterministico di copertura rispetto alla checklist validata dal docente (termini e sinonimi attesi, definizioni non circolari); il tutor pone le domande],
+  [C2. Progettazione concettuale], [3--4], [Modello ER e vincoli del dominio, in sezioni distinte (ogni vincolo con tipo e formulazione)], [Validatore e test di scenario; il tutor conduce l'elicitazione dei vincoli],
+  [C3. Progettazione logica e normalizzazione], [5], [Modello relazionale e meccanismo previsto per ciascun vincolo], [Calcolo deterministico delle forme normali; il tutor discute le ridondanze],
+  [C4. Implementazione e interrogazione SQL], [6--8], [DDL, dati, query], [Ambiente SQLite isolato con esecuzione immediata e diagnosi; i tre punti di verifica restano distinti],
+  [C5. Prova di trasferimento], [9], [Traccia nuova], [Nessuna: prova individuale in aula, valutata dal docente],
+)
+I criteri di ciascuna fase sono i seguenti:
+
+#table(
+  columns: (20%, 20%, 20%, 20%, 20%),
+  align: (auto,auto,auto,auto,auto,),
+  table.header([\#], [Fase], [Attività dello studente], [Criteri verificabili (esempi)], [Controllo],),
+  table.hline(),
+  [1], [Requisiti], [Elenca dati da memorizzare, operazioni richieste, vincoli espliciti e impliciti, ambiguità da chiarire], [Copertura delle voci della checklist; vincoli impliciti individuati; ambiguità motivate], [Checklist validata dal docente; domande del tutor],
+  [2], [Nomi-verbi e glossario], [Estrae concetti candidati e li definisce senza assumere che ogni nome sia entità e ogni verbo associazione], [Ogni voce ha definizione non circolare; sinonimi/omonimi dichiarati; motivazione della classificazione], [Controllo di presenza e di circolarità semplice; tutor sul resto],
+  [3], [Modello concettuale ER], [Entità, attributi, associazioni, cardinalità min/max, identificatori], [Schema valido nel formato; ogni entità ha identificatore; ogni elemento tracciabile a un requisito; cardinalità motivate], [Validatore (struttura); domande e controesempi del tutor sulle cardinalità, non vincolanti],
+  [4], [Vincoli del dominio], [Classifica i vincoli: rappresentati nello schema, CHECK/UNIQUE, inter-relazione o temporali (trigger/applicativo)], [Ogni vincolo ha tipo, formulazione non ambigua e meccanismo previsto; i temporali definiscono intervallo, sovrapposizione e concorrenza], [Checklist; tutor conduce l'elicitazione],
+  [5], [Modello relazionale], [Applica le regole di traduzione; PK, FK, nullabilità, N:M, gerarchie, 1:1; dipendenze funzionali], [Nessuna FK orfana; PK in ogni tabella; N:M risolte; nulli coerenti con le partecipazioni minime; 1NF/2NF/3NF verificate sulle dipendenze dichiarate], [Validatore + calcolo deterministico delle forme normali],
+  [6], [Implementazione SQL (DDL)], [Scrive il DDL SQLite con tipi e vincoli. Se il docente abilita la traduzione automatica, il DDL è generato deterministicamente dal modello relazionale consegnato e lo studente lo analizza e lo commenta], [DDL eseguibile; struttura (#NormalTok("PRAGMA table_info");, #NormalTok("foreign_key_list");) coerente con lo schema relazionale; violazioni attese, derivate dallo schema, rifiutate], [Esecuzione reale + test negativi derivati dallo schema],
+  [7], [Popolamento e test], [Scrive INSERT significativi: casi limite, nulli, assenze di corrispondenza. Se il docente abilita la generazione automatica, la LLM propone i dati di test coerenti con lo schema dello studente, che li verifica e li integra con casi propri], [Dati accettati dal DDL; copertura strutturale derivata dallo schema (righe minime per tabella, genitori senza figli, nulli nelle colonne nullabili, valori ripetuti); casi invalidi derivati dallo schema rifiutati], [Esecuzione reale + controlli di copertura derivati dallo schema],
+  [8], [Query e verifica], [Scrive, esegue e motiva le query; esamina il risultato ottenuto sui dati di test], [Query eseguibile; risultato esaminato e discusso; motivazione della scelta di JOIN/aggregazione; con schema canonico, risultato uguale all'atteso], [Esecuzione reale + parere non vincolante del tutor sul risultato; confronto con le query attese solo con schema canonico],
+  [9], [Prova di trasferimento], [Affronta una traccia nuova, individualmente e senza tutor], [Rubrica del docente per O1--O7], [Docente],
+)
+=== Sulla generazione automatica
+<sulla-generazione-automatica>
+Per impostazione predefinita lo studente scrive DDL e INSERT: sono competenze da acquisire (O5, O6). Il docente può abilitare, per singolo esercizio, due scorciatoie:
+
+- #strong[DDL (fase 6):] generato da un #emph[generatore deterministico] (non dalla LLM) a partire dallo schema relazionale, solo dopo che lo schema ha superato le verifiche indipendenti; la struttura ottenuta è poi confrontata con lo schema.
+- #strong[Dati di test (fase 7):] la LLM propone le istruzioni INSERT per lo schema dello studente (valori plausibili, senza dati personali reali). Lo script è accettato solo se supera una #emph[verifica deterministica] derivata dallo schema: esecuzione senza errori sul DDL dello studente con chiavi esterne attive, copertura strutturale (righe minime per tabella, genitori senza figli, nulli, valori ripetuti), rifiuto dei casi invalidi. Se la verifica fallisce lo script non è consegnato: si rigenera (fino a un numero massimo di tentativi) oppure si segnala al docente.
+
+Quando una scorciatoia è attiva, la competenza corrispondente non è esercitata in quella consegna e va verificata nella fase 9.
+
+== Errori oggettivi e decisioni progettuali
+<sec-errori-decisioni>
+Il sistema distingue due classi di rilievi, con trattamento diverso:
+
+- #strong[Errori oggettivamente verificabili] nei file dello studente: formato non valido, FK verso tabella inesistente, tabella senza PK, N:M non risolta, DDL non eseguibile, violazione di un vincolo dichiarato dallo studente nel proprio schema, query non eseguibile, dipendenza funzionale dichiarata che viola la 3NF. Il tutor li segnala con certezza e li guida a correggerli.
+- #strong[Decisioni progettuali con più soluzioni corrette:] attributo o entità, strategia di traduzione di una gerarchia, accorpamento o tabella separata per una 1:1, uso di chiave surrogata. Il tutor non dichiara errore; chiede di motivare, mostra le conseguenze con un controesempio e accetta ogni soluzione coerente con i requisiti.
+- #strong[Correttezza semantica rispetto alla traccia] (cardinalità, entità, risultato delle query): non è verificata in modo deterministico, salvo l'uso opzionale di uno schema canonico con query attese. Il tutor formula un parere non vincolante, con domande e controesempi; l'accertamento finale spetta alla prova di trasferimento e al docente.
+
+== Livelli di aiuto progressivi
+<sec-livelli-aiuto>
+#table(
+  columns: (33.33%, 33.33%, 33.33%),
+  align: (auto,auto,auto,),
+  table.header([Livello], [Forma dell'aiuto], [Quando],),
+  table.hline(),
+  [L0], [Solo esito dei controlli: area interessata e numero di problemi, senza dettagli], [Primo tentativo],
+  [L1], [Domanda mirata sul problema specifico], [Dopo L0 se il problema persiste],
+  [L2], [Controesempio dal dominio (dati concreti che violano l'intento)], [Dopo L1 non risolutivo],
+  [L3], [Spiegazione del principio applicabile (non della soluzione)], [Dopo L2 o su richiesta],
+  [L4], [Esempio svolto parziale su un caso analogo di altro dominio, seguito da un nuovo esercizio autonomo], [Dopo L3 o su richiesta motivata],
+)
+Regole: l'aiuto sale di un livello alla volta; lo studente può chiedere un livello superiore (la richiesta è registrata, senza penalità); il docente può fissare per esercizio il livello massimo; la soluzione completa non è mai fornita.
+
+== Ciclo di revisione
+<sec-ciclo-revisione>
++ Lo studente propone una soluzione e ne spiega il motivo (campo #NormalTok("motivazione");).
++ I controlli deterministici producono le diagnosi; il tutor ne seleziona #emph[una] e pone una domanda mirata.
++ Lo studente rivede la soluzione e giustifica la modifica nel messaggio di commit.
++ Il sistema riesegue i controlli sulla proprietà interessata, con criteri espliciti.
++ Se serve, il tutor passa al livello successivo; al livello L4 propone un esempio parziale e un nuovo esercizio autonomo.
+
+== Padronanza per competenza
+<sec-padronanza>
+Per ogni competenza (O1--O7) il sistema mostra, non un punteggio, ma lo stato di una checklist di criteri verificabili, con tre stati descrittivi:
+
+- #strong[Da lavorare:] uno o più criteri oggettivi non soddisfatti.
+- #strong[In sviluppo:] criteri oggettivi soddisfatti solo con aiuto di livello ≥ L3.
+- #strong[Acquisito sotto guida:] criteri soddisfatti con aiuto ≤ L2 e motivazioni presenti.
+
+Questi stati sono #emph[indicatori di processo per lo studente e per il docente], non voti. L'acquisizione effettiva è accertata solo dalla fase 9. L'avanzamento è libero: il tutor può consigliare di tornare su un punto aperto, ma l'unico blocco è tecnico (non si può scrivere il DDL senza uno schema relazionale analizzabile sul piano sintattico dal parser e verificabile sul piano semantico dal validatore).
+
+== Precisazioni tecniche incorporate
+<sec-precisazioni-tecniche>
+- #strong[Nomi e verbi:] euristica, non algoritmo. La classificazione dipende dal significato nel dominio; il tutor non la «corregge», chiede di motivarla.
+- #strong[Gerarchie:] l'eliminazione non è regola universale; si valutano accorpamento nella superclasse, nelle sottoclassi o tabelle separate, in base a copertura, disgiunzione e accessi.
+- #strong[Relazioni 1:1:] non si accorpano sempre. Si considerano partecipazione obbligatoria, nullabilità, UNIQUE sulla FK e dipendenze.
+- #strong[Normalizzazione:] 1NF, 2NF, 3NF sempre; BCNF solo se giustificata dalla traccia. La 4NF non è richiesta salvo previsione curricolare.
+- #strong[Valori nulli:] trattati già nella modellazione (partecipazione minima 0 o 1, attributi opzionali), poi tradotti in NOT NULL o in attributi nullabili.
+- #strong[Vincoli temporali:] es. «un medico non può visitare due pazienti nella stessa ora» richiede di definire intervallo (inizio/fine, aperto/chiuso), sovrapposizione e concorrenza. Un CHECK SQLite non può verificare vincoli su più righe: servono UNIQUE su slot discreti, trigger o controllo applicativo, e il test deve verificarlo.
+
+== Metriche separate
+<sec-metriche-separate>
++ #strong[Qualità del modello] (calcolata dai controlli): completezza rispetto ai requisiti del docente, correttezza dei controlli oggettivi, minimalità (elementi non tracciabili), pertinenza, forme normali raggiunte.
++ #strong[Qualità della spiegazione] (letta dal docente su campione, con rubrica a 3 livelli): la motivazione cita requisiti, conseguenze, alternative scartate.
++ #strong[Padronanza dello studente:] prova di trasferimento e capacità di revisione (dai commit).
+
+Le tre misure non sono sommate in un punteggio unico.
+
+== Sostenibilità per il docente
+<sec-sostenibilita-docente>
+Il carico di lavoro è un vincolo di progetto: un protocollo che richiede ore di preparazione per ogni traccia non è applicabile in classi numerose e con tempi stretti. L'automazione riduce solo la preparazione e la lettura; la valutazione resta esclusivamente umana.
+
+=== Pacchetto minimo e pacchetto esteso
+<pacchetto-minimo-e-pacchetto-esteso>
+Il materiale richiesto al docente è ridotto all'essenziale; il resto si deriva dai file dello studente.
+
+#table(
+  columns: (33.33%, 33.33%, 33.33%),
+  align: (auto,auto,auto,),
+  table.header([Elemento], [Pacchetto minimo (predefinito)], [Pacchetto esteso (opzionale)],),
+  table.hline(),
+  [Traccia], [Sì], [Sì],
+  [Checklist dei requisiti (5--10 voci), proposta dallo strumento d'autore e validata], [Sì], [Sì],
+  [Test negativi e copertura dei dati], [Derivati dallo schema dello studente], [Derivati dallo schema dello studente],
+  [Risultato delle query (fase 8)], [Parere non vincolante del tutor su dati di test dello studente o proposti dalla LLM], [Schema canonico, dataset e query attese: controllo deterministico dei risultati, riusabile dal catalogo],
+  [Soluzioni alternative e scenari di test], [No], [Solo nel golden set di ricerca],
+)
+=== Strumento d'autore (AI dietro le quinte)
+<strumento-dautore-ai-dietro-le-quinte>
+Il docente inserisce la traccia, senza soluzione. Lo strumento propone la checklist dei requisiti e, per il pacchetto esteso, schema canonico, dataset e query attese. Controlli deterministici ne verificano la coerenza interna. Il docente valida o affina il pacchetto, che viene poi congelato e versionato. Il materiale generato da una LLM non è affidabile per sé: la validazione umana è obbligatoria.
+
+=== Catalogo di schemi-tipo
+<catalogo-di-schemi-tipo>
+Domini ricorrenti (prenotazioni e ticketing, e-commerce, gestione ospedaliera, biblioteca e prestiti) con checklist, errori tipici e, per alcuni domini, schema canonico con dataset e query attese già pronti. Il docente sceglie il modello e lo adatta alla traccia.
+
+=== Tracce d'esame come punto di partenza
+<tracce-desame-come-punto-di-partenza>
+Le prove degli Esami di Stato sono una fonte primaria di tracce. Prima dell'uso, verificare note legali e licenza del sito del Ministero, citare la fonte e rimandare al documento originale senza riprodurlo. Elenco indicato dal proponente (i link non sono stati verificati uno per uno; il docente seleziona le prove con basi di dati):
+
+#table(
+  columns: (25%, 25%, 25%, 25%),
+  align: (auto,auto,auto,auto,),
+  table.header([Anno], [Sessione], [Codice], [Link],),
+  table.hline(),
+  [2005], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2005/tecnica/M733.pdf")[PDF]],
+  [2007], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2007/M733.PDF")[PDF]],
+  [2009], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2009/M733.pdf")[PDF]],
+  [2011], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2011/M733.pdf")[PDF]],
+  [2013], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M733.pdf")[PDF]],
+  [2016], [Ordinaria], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Ordinaria/M967_ORD16.pdf")[PDF]],
+  [2016], [Straordinaria], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Straordinaria/M967_STR16.pdf")[PDF]],
+  [2016], [Suppletiva], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Suppletiva/M967_SUP16.pdf")[PDF]],
+  [2016], [Esempio di prova], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Esempio%20di%20prova/M967_SIM16.pdf")[PDF]],
+  [2018], [Ordinaria], [I044], [#link("https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Ordinaria/I044_ORD18.pdf")[PDF]],
+  [2018], [Suppletiva], [I044], [#link("https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Suppletiva/I044_SUP18.pdf")[PDF]],
+  [2018], [Straordinaria], [I044], [#link("https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Straordinaria/I044_STR18.pdf")[PDF]],
+)
+Per la fase 9 non si usano tracce pubbliche di cui circolano soluzioni online (e che una LLM può aver visto in addestramento): si adattano (dominio, requisiti, vincoli) o se ne scrivono di inedite.
+
+=== Report compatto
+<report-compatto>
+Per lo studente e per il docente: indicatori fattuali per fase (tentativi per tipo di diagnosi, livello di aiuto massimo richiesto), prodotti dai controlli deterministici e non da un giudizio della LLM. Esempio: «3 tentativi con diagnosi 3NF\_VIOLATA nella fase 5». Nessun punteggio e nessuna inferenza sulla competenza; il report non è utilizzabile a fini valutativi.
+
+=== Pre-screening delle motivazioni
+<pre-screening-delle-motivazioni>
+Nel prototipo, regole deterministiche (lunghezza minima, assenza di riferimenti a elementi dello schema o ai requisiti, testo identico a quello di altri studenti) segnalano al docente i casi da leggere per primi. Il docente legge comunque un campione casuale, per non basarsi solo sulle segnalazioni. Un classificatore basato su modello è rinviato al sistema avanzato.
+
+=== Ipotesi di carico (da misurare nel pilota)
+<ipotesi-di-carico-da-misurare-nel-pilota>
+#table(
+  columns: (33.33%, 33.33%, 33.33%),
+  align: (auto,auto,auto,),
+  table.header([Attività del docente], [Ipotesi con strumento d'autore e catalogo], [Misura nel pilota],),
+  table.hline(),
+  [Preparazione di una traccia], [Scelta o inserimento della traccia e validazione della checklist (pacchetto minimo): 20--30 minuti], [Minuti di validazione per traccia],
+  [Lettura dei risultati], [Report compatto, casi segnalati e un campione di motivazioni e dialoghi], [Minuti per classe e per consegna],
+  [Riferimento: preparazione manuale senza strumento], [4--6 ore per traccia (stima del proponente)], [Da rilevare su un campione di docenti],
+)
+La stima non è un risultato: tempi di preparazione e di revisione sono misure del pilota.
+
+= Architettura del sistema e prototipo tecnico
+<sec-architettura-sistema>
+== Principi architetturali
+<sec-principi-architetturali>
+- #strong[Open source, on-premise, senza servizi esterni]: L'intera catena di elaborazione risiede sull'hardware dell'istituto scolastico per garantire la sovranità dei dati e la conformità al GDPR.
+- #strong[Agenti semplici con responsabilità singola]: Le decisioni sulla correttezza sintattica e formale sono rigorosamente deterministiche; l'LLM si occupa esclusivamente della mediazione maieutica e del dialogo.
+- #strong[Un solo formato testuale strutturato]: Formato YAML validato tramite JSON Schema per modelli concettuali e relazionali.
+- #strong[Consegna e feedback tramite repository Git]: Flussi di lavoro basati su commit incrementali e pipeline CI per tracciare il processo di revisione.
+
+== Architettura del prototipo
+<sec-architettura-prototipo>
+#Skylighting(([#NormalTok("[Studente] --testo/YAML--> [Interfaccia unica: Open WebUI o CLI/FastAPI]");],
+[#NormalTok("                                   |");],
+[#NormalTok("                                   v");],
+[#NormalTok("                        [Orchestratore (Python, FSM)]");],
+[#NormalTok("              stato del percorso, livello di aiuto, log pseudonimi");],
+[#NormalTok("                 |                    |                      |");],
+[#NormalTok("                 v                    v                      v");],
+[#NormalTok("      [Validatori YAML]     [Esecutore SQLite]      [Tutor LLM (1 modello)]");],
+[#NormalTok("  schema, FK, PK, forme    isolato, in memoria,      riceve diagnosi, risultati");],
+[#NormalTok("  normali (deterministici) dati di test              delle query e livello di aiuto");],
+[#NormalTok("                           dello studente");],
+[#NormalTok("                 +---- diagnosi strutturate e risultati ----+");],));
+=== Flusso operativo
+<flusso-operativo>
++ Lo studente consegna un file (tramite commit/MR o interfaccia web).
++ L'orchestratore valida la sintassi e la conformità allo schema atteso.
++ Vengono eseguiti i controlli deterministici (integrità referenziale, normalizzazione, esecuzione su SQLite isolato) e costruite le diagnosi strutturate.
++ Il tutor LLM riceve le sole diagnosi e il livello di aiuto corrente, trasformandole in una risposta socratica conforme alle regole pedagogiche.
++ L'orchestratore applica un filtro di sicurezza (controllo di non-fuga della soluzione) e restituisce la risposta allo studente.
+
+== Hardware e scelta del modello
+<sec-hardware-modello>
+Configurazione di riferimento per il server locale: #strong[macchina Linux con 64 GB di RAM e GPU da 32 GB di VRAM].
+
+- #strong[Runtime di inferenza:] Ollama (per semplicità di setup locale) oppure llama.cpp / vLLM (per massimo controllo, throughput e concorrenza); esposizione di API standard compatibile OpenAI su #NormalTok("localhost");.
+- #strong[Modello linguistico unico:] Un solo modello linguistico con provate capacità di coding e ragionamento in lingua italiana e licenza permissiva (es. Apache 2.0). Il modello deve essere quantizzato per risiedere interamente nei 32 GB di VRAM (indicativamente modelli da \~30B parametri con quantizzazione a 4--5 bit e contesto utile di 16--32k token).
+- #strong[Candidati per il confronto sul golden set:]
+  - #NormalTok("gpt-oss-20b"); (Apache 2.0);
+  - Modelli della famiglia Qwen 2.5 / 3 (30--32B parametri);
+  - Modelli open weights equivalenti con forte supporto SQL e logica. La scelta finale è guidata empiricamente dai risultati sul golden set (#ref(<sec-test-sistema>, supplement: [Sezione])), non dalla notorietà.
+- #strong[Parametri di inferenza:] Temperatura bassa ($T approx 0.1 - 0.2$) e seed fisso nei test di conformità per massimizzare la riproducibilità.
+- #strong[Concorrenza:] Gestione di una coda FIFO con priorità singola GPU; con 5--20 studenti a ritmo di riflessione e digitazione, la latenza per turno di dialogo resta nell'ordine di pochi secondi.
+- #strong[Visione artificiale:] Esclusa dal prototipo iniziale; demandata al sistema avanzato (#ref(<sec-sistema-avanzato>, supplement: [Sezione])).
+
+== Esecutore SQLite isolato
+<sec-esecutore-sqlite>
+Requisiti di isolamento e sicurezza per l'esecuzione di DDL, popolamento e query dello studente:
+
+- #strong[Isolamento a livello OS:] Processo separato in container Docker senza rete (#NormalTok("--network none");), utente senza privilegi (#NormalTok("nobody");/#NormalTok("runner");), filesystem montato in sola lettura ad eccezione di una directory #NormalTok("/tmp"); volatile; in alternativa, #NormalTok("subprocess"); vincolato con limiti rigidi di sistema (#NormalTok("rlimit"); su CPU time, RSS memory e disk quota).
+- #strong[Database in memoria:] Utilizzo di database SQLite #NormalTok(":memory:"); (o file temporaneo distrutto al termine dell'elaborazione); una nuova istanza pulita per ciascun tentativo.
+- #strong[Integrità referenziale attiva:] Esecuzione obbligatoria di #NormalTok("PRAGMA foreign_keys = ON;");.
+- #strong[Modalità sola lettura per la verifica delle query:] #NormalTok("PRAGMA query_only = ON;"); o apertura della connessione in #NormalTok("mode=ro"); durante la fase 8.
+- #strong[Autorizzatore SQLite attivo (#NormalTok("set_authorizer");):] Blocco categorico di istruzioni pericolose come #NormalTok("ATTACH DATABASE");, #NormalTok("DETACH DATABASE");, caricamento di estensioni native (#NormalTok("load_extension");), comandi di #NormalTok("PRAGMA"); non autorizzati e operazioni di scrittura al di fuori delle fasi di DDL e popolamento.
+- #strong[Timeout e quote:] Limite di timeout stringente (es. massimo 2 secondi per query) e limite al numero di tuple restituite (max 100 righe) per prevenire blocchi da loop o prodotti cartesiani involontari.
+- #strong[Visibilità dei dati:] Lo studente esegue le proprie query esclusivamente sul proprio dataset di test. Se il docente attiva uno schema canonico con dataset di riferimento, quest'ultimo rimane completamente invisibile allo studente (il sistema notifica solo l'eventuale discrepanza o prima differenza riscontrata).
+
+== Test automatici del sistema
+<sec-test-sistema>
+Il sistema integra tre famiglie di test automatici eseguibili in #NormalTok("pytest"); e nella pipeline CI/CD:
+
+=== Test dei controlli deterministici
+<sec-test-controlli-deterministici>
+- #strong[Validatore sintattico e semantico:] File YAML validi e casi di test negativi per ciascuna regola (FK orfane, PK mancanti, associazioni N:M non tradotte in tabelle ponte).
+- #strong[Calcolo delle forme normali:] Test con insiemi di dipendenze funzionali note per verificare il calcolo algebrico della chiusura degli attributi e la rilevazione di violazioni di 2NF, 3NF e BCNF.
+- #strong[Robustezza del sandbox:] Verifica che tentativi di attacco (injection di #NormalTok("ATTACH");, loop di ricorsione CTE, esaurimento memoria) vengano bloccati dall'autorizzatore e terminati per timeout.
+- #strong[Coerenza DDL ↔ Modello relazionale:] Verifica deterministica che le tabelle, colonne, indici e vincoli creati in SQLite (#NormalTok("PRAGMA table_info");, #NormalTok("PRAGMA foreign_key_list");) coincidano perfettamente con lo schema relazionale dichiarato nello YAML.
+- #strong[Derivazione automatica dei test negativi:] Generazione deterministica di casi di test che violano vincoli di integrità dichiarati (duplicazione PK, violazione NOT NULL, violazione CHECK).
+
+=== Test sugli esercizi (Golden set di ricerca e schema canonico)
+<sec-test-esercizi>
+- #strong[Checklist dei requisiti:] Verifica che la copertura semantica dei termini sia rilevata correttamente sia su soluzioni esaustive sia su consegne parziali.
+- #strong[Golden set di ricerca:] Insieme calibrato di tracce con soluzioni multiple valide e soluzioni errate ottenute per mutazione deterministica (es. rimozione di una chiave esterna, cardinalità invertita, vincolo omesso), ciascuna con la corrispondente diagnosi attesa.
+- #strong[Schema canonico:] Esecuzione delle query attese sul dataset di riferimento con confronto tra insiemi di risultati.
+
+=== Test del tutor LLM (Golden set)
+<sec-test-tutor-llm>
+- #strong[Casi di test:] Almeno 30 casi per ciascuna fase (soluzione corretta, soluzione con errore tipico, soluzione alternativa valida e non convenzionale).
+- #strong[Assenza di contraddizioni:] Il tutor non deve mai smentire una diagnosi deterministica né segnalare errori fittizi su varianti valide.
+- #strong[Aderenza al livello di aiuto:] A livello L1 il messaggio deve contenere solo domande; controesempi sono ammessi solo da L2; spiegazioni del principio solo da L3; nessun codice risolutivo completo a nessun livello.
+- #strong[Filtro di non-fuga della soluzione:] Verifica automatica che la risposta del tutor non contenga blocchi di codice completi o query risolutive; in caso di violazione, la risposta è rigettata e rigenerata con un prompt di ammonimento.
+- #strong[Valutazione semantica su query (fase 8):] Misura dell'accuratezza del parere non vincolante del tutor rispetto a valutatori umani su un corpus di query con errori tipici (filtro errato, JOIN incompleta, raggruppamento assente).
+- #strong[Validazione umana e accordo inter-valutatore:] Revisione in cieco su un campione di risposte da parte di docenti con calcolo dell'indice Kappa di Cohen.
+
+=== Verifica deterministica dei dati di test generati dalla LLM (fase 7, se abilitata)
+<sec-verifica-dati-generati>
+Quando il docente abilita la generazione assistita dei dati: - Lo script SQL generato deve essere composto unicamente da istruzioni #NormalTok("INSERT");. - Esecuzione obbligatoria senza errori sul DDL dello studente con #NormalTok("PRAGMA foreign_keys = ON;");. - Verifica della copertura strutturale minima derivata dallo schema: numero minimo di righe per tabella, presenza di almeno un'istanza genitore priva di figli, presenza di valori nulli nelle colonne opzionali, valori ripetuti per consentire test di aggregazione (#NormalTok("GROUP BY"); e #NormalTok("COUNT");). - I casi invalidi generati per test negativo devono fallire l'inserimento.
+
+== System prompt del tutor (Versione per il prototipo)
+<sec-system-prompt>
+#Skylighting(([#NormalTok("Sei DB-Socrates, tutor di Basi di Dati. Ricevi in ingresso: (1) la fase corrente,");],
+[#NormalTok("(2) il file consegnato dallo studente, (3) un elenco di DIAGNOSI prodotte da");],
+[#NormalTok("controlli automatici, (4) il LIVELLO DI AIUTO consentito (L0-L4),");],
+[#NormalTok("(5) le eventuali SCORCIATOIE abilitate dal docente (DDL, DATI),");],
+[#NormalTok("(6) in fase 8, il RISULTATO della query sui dati di test.");],
+[],
+[#NormalTok("Regole:");],
+[#NormalTok("- Le diagnosi sono la verita tecnica: non contraddirle e non aggiungerne.");],
+[#NormalTok("- Scegli UNA diagnosi alla volta e rispondi solo al livello di aiuto indicato:");],
+[#NormalTok("  L0-L2 maieutica (esito, domanda, controesempio); L3-L4 elicitazione");],
+[#NormalTok("  (principio, esempio parziale su un altro dominio).");],
+[#NormalTok("- Non fornire mai schemi, DDL o query risolutive. Non assegnare punteggi.");],
+[#NormalTok("- Per le decisioni progettuali segnala che esistono piu soluzioni valide e chiedi");],
+[#NormalTok("  di motivare la scelta.");],
+[#NormalTok("- Esprimi un parere su completezza, minimalita, pertinenza o lessico solo se lo");],
+[#NormalTok("  studente lo chiede, dichiarando che non e vincolante.");],
+[#NormalTok("- Fase 8: confronta la richiesta, la query e il RISULTATO ricevuto; esprimi un");],
+[#NormalTok("  parere non vincolante e trasformalo in domande (righe attese, mancanti o");],
+[#NormalTok("  duplicate). Se i dati di test non permettono di distinguere una query");],
+[#NormalTok("  corretta da una sbagliata, dillo e chiedi allo studente di aggiungere casi.");],
+[#NormalTok("- Chiedi sempre allo studente di giustificare la modifica che propone.");],
+[#NormalTok("- Se non sei sicuro, dillo e rimanda al docente.");],
+[#NormalTok("- Se la scorciatoia DATI e attiva (fase 7): proponi INSERT coerenti con lo schema");],
+[#NormalTok("  dello studente (valori plausibili, senza dati personali reali, con genitori");],
+[#NormalTok("  senza figli, nulli e valori ripetuti); nessun altro codice.");],
+[#NormalTok("- Rispondi in italiano, in massimo 150 parole (esclusi gli INSERT generati).");],));
+== GitLab / Forgejo come piattaforma di consegna e revisione
+<sec-piattaforma-consegna>
+Infrastruttura basata su istanza on-premise di #strong[GitLab Community Edition] (o #strong[Forgejo / Gitea]) affiancata da un runner Docker privo di connessione Internet.
+
+- #strong[Repository modello:] Predisposto dal docente per ogni esercitazione contenente: traccia, template vuoti dei file di consegna, schema JSON di validazione e file #NormalTok(".gitlab-ci.yml");.
+
+- #strong[Workflow studente:] Ogni studente o coppia lavora in un fork privato (o branch isolato) identificato da uno pseudonimo (es. #NormalTok("s017");).
+
+- #strong[File di consegna:]
+
+  #Skylighting(([#NormalTok("01_requisiti.md");],
+  [#NormalTok("02_glossario.md");],
+  [#NormalTok("03_concettuale.yaml");],
+  [#NormalTok("04_vincoli.md");],
+  [#NormalTok("05_relazionale.yaml");],
+  [#NormalTok("06_schema.sql");],
+  [#NormalTok("07_dati.sql");],
+  [#NormalTok("08_query.sql");],
+  [#NormalTok("motivazioni.md");],));
+
+- #strong[Commit motivati:] Ogni modifica deve essere accompagnata da un messaggio di commit esplicativo che motivi il perché della variazione; la cronologia Git costituisce la prova primaria della capacità di revisione autonoma.
+
+- #strong[Merge Request e Pipeline CI:] L'apertura della Merge Request per ciascuna consegna scatena la pipeline di validazione:
+
+  #Skylighting(([#FunctionTok("stages");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("valida");#KeywordTok(",");#AttributeTok(" esegui");#KeywordTok("]");],
+  [],
+  [#FunctionTok("valida");#KeywordTok(":");],
+  [#AttributeTok("  ");#FunctionTok("stage");#KeywordTok(":");#AttributeTok(" valida");],
+  [#AttributeTok("  ");#FunctionTok("script");#KeywordTok(":");],
+  [#AttributeTok("    ");#KeywordTok("-");#AttributeTok(" python -m socratic.validate 03_concettuale.yaml 05_relazionale.yaml");],
+  [],
+  [#FunctionTok("esegui");#KeywordTok(":");],
+  [#AttributeTok("  ");#FunctionTok("stage");#KeywordTok(":");#AttributeTok(" esegui");],
+  [#AttributeTok("  ");#FunctionTok("script");#KeywordTok(":");],
+  [#AttributeTok("    ");#KeywordTok("-");#AttributeTok(" python -m socratic.run --ddl 06_schema.sql --dati 07_dati.sql --query 08_query.sql --test tests/");],
+  [#AttributeTok("  ");#FunctionTok("allow_failure");#KeywordTok(":");#AttributeTok(" ");#CharTok("true");],));
+
+- #strong[Review umana del docente:] Il docente può intervenire direttamente nella discussione della Merge Request commentando a campione gli elaborati. Tutti i commenti automatici del sistema riportano chiaramente la dicitura: #emph[«Verifica tecnica automatica, priva di valore valutativo»].
+
+== Strumento d'autore per il docente
+<sec-strumento-autore>
+Agente specializzato a compito unico per accelerare la preparazione dei materiali didattici senza trattare dati personali degli studenti:
+
++ #strong[Input:] Inserimento del testo della traccia e selezione opzionale di uno schema-tipo dal catalogo di dominio.
++ #strong[Generazione della bozza:] L'LLM propone la checklist dei requisiti (5--10 punti chiave); per il pacchetto esteso genera lo schema canonico, il dataset e le query attese per la fase 8.
++ #strong[Controllo automatico di coerenza:] I validatori verificano la corrispondenza lessicale tra traccia e checklist e l'eseguibilità dello schema canonico.
++ #strong[Validazione umana obbligatoria:] Il docente esamina la proposta tramite interfaccia visuale o Merge Request Git, apporta eventuali modifiche e approva il pacchetto, che viene congelato con un tag di versione immutabile.
++ #strong[Ciclo di miglioramento continuo:] Eventuali falsi positivi segnalati dagli studenti consentono al docente di raffinare la checklist con una nuova versione del tag.
+
+== Ipotesi di sistema avanzato (Post-sperimentazione)
+<sec-sistema-avanzato>
+Funzionalità previste per successive evoluzioni della piattaforma: - #strong[Visione artificiale per schemi manoscritti:] Modello multimodale (VLM) per la trascrizione automatica di diagrammi concettuali disegnati a mano libera su carta; la trascrizione produce un'ipotesi YAML che lo studente corregge e valida prima di avviare il dialogo. - #strong[Architettura multi-agente specializzata:] Disaccoppiamento tra agente trascrittore, agente per l'analisi di vincoli complessi, generatore di controesempi e sintetizzatore di report per il docente, coordinati da una FSM centrale. - #strong[Supporto multi-notazione:] Convertitori bidirezionali tra formato YAML e formati grafici o testuali (Mermaid, PlantUML, diagrammi relazionali Chen/Crow's Foot). - #strong[RAG locale:] Retrieval-Augmented Generation su slide di lezione, testi di riferimento e dispense del docente. - #strong[Cruscotto analitico:] Dashboard con indicatori aggregati di classe per identificare i concetti critici (es. frequenza di violazioni della 3NF, tempo medio di risoluzione delle chiavi esterne).
+
+= Specifiche dei formati e contratti dati
+<sec-formati-contratti>
+Per garantire interoperabilità, elaborazione automatica deterministica e feedback preciso da parte dell'LLM, il sistema adotta formati testuali standard e rigorosamente tipizzati.
+
+#horizontalrule
+
+== Specifiche YAML per i modelli
+<sec-specifiche-yaml>
+Tutti i modelli prodotti dagli studenti adottano la sintassi #strong[YAML], validata a tempo di commit o upload mediante #strong[JSON Schema] o schemi #strong[Pydantic]. I diagrammi visuali (es. Mermaid) sono generati dal sistema per visualizzazione a partire dal file YAML e non costituiscono l'input primario.
+
+=== Modello Concettuale (#NormalTok("tipo: concettuale");)
+<sec-modello-concettuale>
+Il modello concettuale formalizza entità, attributi, identificatori univoci, associazioni, cardinalità minime/massime e vincoli di dominio. Ogni entità e associazione include un campo #NormalTok("motivazione"); in cui lo studente giustifica la scelta rispetto al testo del problema.
+
+#Skylighting(([#FunctionTok("versione");#KeywordTok(":");#AttributeTok(" ");#DecValTok("1");],
+[#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" concettuale");],
+[],
+[#FunctionTok("entita");#KeywordTok(":");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" Paziente");],
+[#AttributeTok("    ");#FunctionTok("attributi");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" cf");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" stringa");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("identificatore");#KeywordTok(":");#AttributeTok(" ");#CharTok("true");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" cognome");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" stringa");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("opzionale");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" nome");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" stringa");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("opzionale");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" telefono");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" stringa");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("opzionale");#KeywordTok(":");#AttributeTok(" ");#CharTok("true");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("motivazione");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Il codice fiscale identifica univocamente la persona nel dominio.\"");],
+[],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" Medico");],
+[#AttributeTok("    ");#FunctionTok("attributi");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" matricola");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" stringa");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("identificatore");#KeywordTok(":");#AttributeTok(" ");#CharTok("true");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" specializzazione");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" stringa");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("opzionale");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("motivazione");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"La matricola ospedaliera è l'identificatore interno del medico.\"");],
+[],
+[#FunctionTok("associazioni");#KeywordTok(":");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" Visita");],
+[#AttributeTok("    ");#FunctionTok("partecipanti");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("entita");#KeywordTok(":");#AttributeTok(" Paziente");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("card");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"0..N\"");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("entita");#KeywordTok(":");#AttributeTok(" Medico");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("card");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"0..N\"");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("attributi");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" inizio");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" datetime");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" durata_min");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" intero");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("motivazione");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Una visita registra data, ora e durata dell'incontro tra paziente e medico.\"");],
+[],
+[#FunctionTok("vincoli");#KeywordTok(":");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("id");#KeywordTok(":");#AttributeTok(" V1");],
+[#AttributeTok("    ");#FunctionTok("testo");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Un medico non può effettuare due visite con intervalli temporali sovrapposti.\"");],
+[#AttributeTok("    ");#FunctionTok("classe");#KeywordTok(":");#AttributeTok(" temporale");],
+[#AttributeTok("    ");#FunctionTok("meccanismo");#KeywordTok(":");#AttributeTok(" trigger");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("id");#KeywordTok(":");#AttributeTok(" V2");],
+[#AttributeTok("    ");#FunctionTok("testo");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"La durata della visita deve essere strettamente positiva.\"");],
+[#AttributeTok("    ");#FunctionTok("classe");#KeywordTok(":");#AttributeTok(" attributo");],
+[#AttributeTok("    ");#FunctionTok("meccanismo");#KeywordTok(":");#AttributeTok(" check");],));
+==== Regole di validazione semantica concettuale
+<regole-di-validazione-semantica-concettuale>
++ #strong[Unicità dei nomi]: Nessuna entità o associazione può avere nomi duplicati.
++ #strong[Identificatore presente]: Ogni entità deve possedere almeno un attributo con #NormalTok("identificatore: true"); (o identificatore esterno dichiarato).
++ #strong[Cardinalità valide]: I valori di #NormalTok("card"); ammessi sono #NormalTok("'0..1'");, #NormalTok("'1..1'");, #NormalTok("'0..N'");, #NormalTok("'1..N'"); (o notazioni equivalenti min/max).
++ #strong[Tracciabilità]: Ogni entità deve essere richiamata in almeno una associazione o giustificata esplicitamente.
+
+#horizontalrule
+
+=== Modello Relazionale (#NormalTok("tipo: relazionale");)
+<sec-modello-relazionale>
+Il modello relazionale definisce tabelle, tipi di dato SQL, nullabilità, chiavi primarie, chiavi esterne, vincoli di unicità, check e #strong[dipendenze funzionali dichiarate]. La presenza esplicita delle dipendenze rende possibile il calcolo deterministico delle chiavi candidate e la verifica formale di 2NF, 3NF e BCNF.
+
+#Skylighting(([#FunctionTok("versione");#KeywordTok(":");#AttributeTok(" ");#DecValTok("1");],
+[#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" relazionale");],
+[],
+[#FunctionTok("tabelle");#KeywordTok(":");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" Paziente");],
+[#AttributeTok("    ");#FunctionTok("colonne");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" cf");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" cognome");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" nome");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" telefono");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("true");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("pk");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("cf");#KeywordTok("]");],
+[#AttributeTok("    ");#FunctionTok("motivazione");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Tabella anagrafica pazienti con PK codice fiscale.\"");],
+[],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" Medico");],
+[#AttributeTok("    ");#FunctionTok("colonne");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" matricola");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" specializzazione");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("pk");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("matricola");#KeywordTok("]");],
+[#AttributeTok("    ");#FunctionTok("motivazione");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Tabella anagrafica medici con PK matricola.\"");],
+[],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" Visita");],
+[#AttributeTok("    ");#FunctionTok("colonne");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" id");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" INTEGER");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" cf_paziente");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" matricola_medico");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" inizio");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" TEXT");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("{");#FunctionTok("nome");#KeywordTok(":");#AttributeTok(" durata_min");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("tipo");#KeywordTok(":");#AttributeTok(" INTEGER");#KeywordTok(",");#AttributeTok(" ");#FunctionTok("nullo");#KeywordTok(":");#AttributeTok(" ");#CharTok("false");#KeywordTok("}");],
+[#AttributeTok("    ");#FunctionTok("pk");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("id");#KeywordTok("]");],
+[#AttributeTok("    ");#FunctionTok("fk");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("colonne");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("cf_paziente");#KeywordTok("]");],
+[#AttributeTok("        ");#FunctionTok("riferisce");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Paziente(cf)\"");],
+[#AttributeTok("        ");#FunctionTok("on_delete");#KeywordTok(":");#AttributeTok(" RESTRICT");],
+[#AttributeTok("        ");#FunctionTok("on_update");#KeywordTok(":");#AttributeTok(" CASCADE");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#FunctionTok("colonne");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("matricola_medico");#KeywordTok("]");],
+[#AttributeTok("        ");#FunctionTok("riferisce");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Medico(matricola)\"");],
+[#AttributeTok("        ");#FunctionTok("on_delete");#KeywordTok(":");#AttributeTok(" RESTRICT");],
+[#AttributeTok("        ");#FunctionTok("on_update");#KeywordTok(":");#AttributeTok(" CASCADE");],
+[#AttributeTok("    ");#FunctionTok("unique");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#KeywordTok("[");#AttributeTok("matricola_medico");#KeywordTok(",");#AttributeTok(" inizio");#KeywordTok("]");],
+[#AttributeTok("    ");#FunctionTok("check");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#StringTok("\"durata_min > 0\"");],
+[#AttributeTok("    ");#FunctionTok("dipendenze");#KeywordTok(":");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#StringTok("\"id -> cf_paziente, matricola_medico, inizio, durata_min\"");],
+[#AttributeTok("      ");#KeywordTok("-");#AttributeTok(" ");#StringTok("\"matricola_medico, inizio -> id, cf_paziente, durata_min\"");],
+[#AttributeTok("    ");#FunctionTok("motivazione");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"Chiave surrogata id per gestire visite multiple tra gli stessi soggetti.\"");],));
+==== Regole di calcolo deterministico
+<regole-di-calcolo-deterministico>
+- #strong[Chiusura degli attributi ($X^(+)$)]: Calcolo automatico della chiusura degli insiemi di attributi rispetto alle dipendenze dichiarate.
+- #strong[Rilevazione chiavi candidate]: Verifica che la chiave primaria scelta (#NormalTok("pk");) sia effettivamente una superchiave minimale.
+- #strong[Forme normali]:
+  - #emph[1NF]: Valori atomici e presenza di chiave primaria.
+  - #emph[2NF]: Assenza di dipendenze parziali di attributi non primi dalla chiave primaria.
+  - #emph[3NF]: Assenza di dipendenze transitive verso attributi non primi.
+  - #emph[BCNF]: Ogni determinante nelle dipendenze è una superchiave.
+
+#horizontalrule
+
+== Struttura dei file di consegna dello studente
+<sec-file-consegna>
+Il repository o spazio di lavoro dello studente si compone di file standardizzati:
+
+#table(
+  columns: (33.33%, 33.33%, 33.33%),
+  align: (auto,auto,auto,),
+  table.header([File], [Formato], [Contenuto],),
+  table.hline(),
+  [#NormalTok("01_requisiti.md");], [Markdown], [Elenco di dati da memorizzare, operazioni richieste, vincoli espliciti/impliciti e ambiguità rilevate.],
+  [#NormalTok("02_glossario.md");], [Markdown], [Glossario concetti estratti (nomi/verbi), definizioni formali non circolari, sinonimi e omonimi.],
+  [#NormalTok("03_concettuale.yaml");], [YAML], [Modello concettuale ER secondo la specifica #ref(<sec-modello-concettuale>, supplement: [Sezione]).],
+  [#NormalTok("04_vincoli.md");], [Markdown], [Tabella di classificazione dei vincoli di business e meccanismo di enforcement scelto (schema, check, trigger, app).],
+  [#NormalTok("05_relazionale.yaml");], [YAML], [Modello relazionale secondo la specifica #ref(<sec-modello-relazionale>, supplement: [Sezione]).],
+  [#NormalTok("06_schema.sql");], [SQL (SQLite)], [Istruzioni DDL (#NormalTok("CREATE TABLE");, vincoli #NormalTok("CHECK");, #NormalTok("UNIQUE");, indici).],
+  [#NormalTok("07_dati.sql");], [SQL (SQLite)], [Istruzioni DML (#NormalTok("INSERT");) con dataset significativo e casi limite.],
+  [#NormalTok("08_query.sql");], [SQL (SQLite)], [Query #NormalTok("SELECT"); con commento di motivazione della formulazione logica.],
+  [#NormalTok("motivazioni.md");], [Markdown], [Registro narrativo delle decisioni di riprogettazione adottate a seguito dei feedback.],
+)
+
+#horizontalrule
+
+== Formato delle diagnosi strutturate
+<sec-diagnosi-strutturate>
+Quando l'orchestratore esegue i validatori deterministici, genera un payload JSON standardizzato che viene fornito al modello linguistico tutor:
+
+#Skylighting(([#FunctionTok("{");],
+[#NormalTok("  ");#DataTypeTok("\"consegna_id\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"C3\"");#FunctionTok(",");],
+[#NormalTok("  ");#DataTypeTok("\"fase\"");#FunctionTok(":");#NormalTok(" ");#DecValTok("5");#FunctionTok(",");],
+[#NormalTok("  ");#DataTypeTok("\"livello_aiuto\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"L1\"");#FunctionTok(",");],
+[#NormalTok("  ");#DataTypeTok("\"errori_rilevati\"");#FunctionTok(":");#NormalTok(" ");#OtherTok("[");],
+[#NormalTok("    ");#FunctionTok("{");],
+[#NormalTok("      ");#DataTypeTok("\"codice\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"3NF_VIOLATA\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"gravita\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"errore_oggettivo\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"tabella\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"Ordine\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"dettaglio\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"L'attributo 'citta_cliente' dipende transitivamente da 'cliente_id' e non direttamente dalla PK 'ordine_id'.\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"dipendenza_violante\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"cliente_id -> citta_cliente\"");],
+[#NormalTok("    ");#FunctionTok("}");#OtherTok(",");],
+[#NormalTok("    ");#FunctionTok("{");],
+[#NormalTok("      ");#DataTypeTok("\"codice\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"FK_ORFANA\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"gravita\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"errore_oggettivo\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"tabella\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"Dettaglio\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"dettaglio\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"La chiave esterna 'prodotto_id' riferisce una colonna non presente nella tabella Prodotti.\"");],
+[#NormalTok("    ");#FunctionTok("}");],
+[#NormalTok("  ");#OtherTok("]");#FunctionTok(",");],
+[#NormalTok("  ");#DataTypeTok("\"metriche\"");#FunctionTok(":");#NormalTok(" ");#FunctionTok("{");],
+[#NormalTok("    ");#DataTypeTok("\"completezza_requisiti\"");#FunctionTok(":");#NormalTok(" ");#FloatTok("0.85");#FunctionTok(",");],
+[#NormalTok("    ");#DataTypeTok("\"copertura_fk\"");#FunctionTok(":");#NormalTok(" ");#FloatTok("0.90");#FunctionTok(",");],
+[#NormalTok("    ");#DataTypeTok("\"forme_normali\"");#FunctionTok(":");#NormalTok(" ");#FunctionTok("{");],
+[#NormalTok("      ");#DataTypeTok("\"Ordine\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"2NF\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"Cliente\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"3NF\"");#FunctionTok(",");],
+[#NormalTok("      ");#DataTypeTok("\"Prodotto\"");#FunctionTok(":");#NormalTok(" ");#StringTok("\"3NF\"");],
+[#NormalTok("    ");#FunctionTok("}");],
+[#NormalTok("  ");#FunctionTok("}");],
+[#FunctionTok("}");],));
+Il tutor riceve questo payload nel prompt di sistema e seleziona #strong[una sola diagnosi alla volta] per non sovraccaricare cognitivamente lo studente.
+
+#horizontalrule
+
+== Formato del report compatto di processo
+<sec-report-processo>
+Per consentire al docente una consultazione rapida del percorso senza applicare automatismi valutativi, il sistema genera un report sintetico per studente:
+
+#Skylighting(([#NormalTok("======================================================================");],
+[#NormalTok("REPORT PROCESSO: Studente s042 - Traccia: Gestione Ospedaliera (M733)");],
+[#NormalTok("======================================================================");],
+[#NormalTok("Fase 1 (Requisiti):           4 tentativi | Livello aiuto max: L1");],
+[#NormalTok("Fase 2 (Glossario):           2 tentativi | Livello aiuto max: L0");],
+[#NormalTok("Fase 3 (Concettuale ER):      6 tentativi | Livello aiuto max: L2");],
+[#NormalTok("   - Diagnosi ricorrente:     CARDINALITA_INVERTITA (2 volte)");],
+[#NormalTok("Fase 4 (Vincoli):             3 tentativi | Livello aiuto max: L2");],
+[#NormalTok("Fase 5 (Relazionale):         5 tentativi | Livello aiuto max: L3");],
+[#NormalTok("   - Diagnosi ricorrente:     3NF_VIOLATA (3 volte)");],
+[#NormalTok("Fase 6 (DDL SQLite):          2 tentativi | Livello aiuto max: L1");],
+[#NormalTok("Fase 7 (Popolamento/Test):    3 tentativi | Livello aiuto max: L1");],
+[#NormalTok("Fase 8 (Query SQL):           4 tentativi | Livello aiuto max: L2");],
+[],
+[#NormalTok("Note e flag di attenzione:");],
+[#NormalTok("- Superamento di L2 nella fase 5 (richiesto supporto di principio su normalizzazione).");],
+[#NormalTok("- Motivazioni sintetiche segnalate dal pre-screening per la fase 3 (righe < 3).");],
+[#NormalTok("======================================================================");],));
+= Quadro normativo, sicurezza e privacy
+<sec-normativa-sicurezza>
+Quanto segue costituisce una traccia operativa di conformità normativa e di sicurezza da validare con il Responsabile della Protezione dei Dati (DPO) dell'istituzione scolastica e con il Dirigente Scolastico prima dell'avvio della sperimentazione; non costituisce parere legale formale.
+
+#horizontalrule
+
+== Trattamento dei dati personali (GDPR)
+<sec-trattamento-dati>
+La tabella seguente sintetizza le scelte di conformità al Regolamento Generale sulla Protezione dei Dati (GDPR - Regolamento UE 2016/679):
+
+#table(
+  columns: (50%, 50%),
+  align: (auto,auto,),
+  table.header([Aspetto], [Scelta e misura operativa],),
+  table.hline(),
+  [#strong[Titolare del trattamento]], [L'istituzione scolastica (o universitaria) in cui si svolge la sperimentazione.],
+  [#strong[Finalità]], [Supporto didattico formativo curricolare; eventuale ricerca didattica accademica in forma rigorosamente aggregata e anonima.],
+  [#strong[Base giuridica]], [Esecuzione di un compito di interesse pubblico o connesso all'esercizio di pubblici poteri di cui è investito il titolare (art. 6.1.e GDPR); per la ricerca didattica, specifica informativa e acquisizione del consenso o altra base identificata con il DPO.],
+  [#strong[Tutela dei minori]], [Studenti in prevalenza minorenni (circa 14--19 anni): erogazione di informativa trasparente e accessibile a studenti ed esercenti la responsabilità genitoriale.],
+  [#strong[Dati trattati]], [Elaborati didattici (file YAML, query SQL, testi di motivazione), log delle interazioni e delle diagnosi; #strong[divieto categorico di inserire dati personali reali] nelle tracce e nei dataset di prova.],
+  [#strong[Minimizzazione e pseudonimizzazione]], [Adozione di identificatori pseudonimi casuali (es. #NormalTok("s017");); nessun nome o dato anagrafico inserito nei prompt; per le immagini di schemi manoscritti (sistema avanzato), distruzione del file immagine immediatamente dopo la trascrizione testuale.],
+  [#strong[Conservazione]], [Conservazione dei log tecnici e dei dialoghi limitata alla durata dell'anno scolastico, con successiva cancellazione sicura o anonimizzazione irreversibile; le pubblicazioni di ricerca utilizzano solo dati aggregati.],
+  [#strong[Ruoli e accessi]], [Studente: accesso esclusivo ai propri dati. Docente: accesso ai dati e ai report della propria classe. Amministratore di sistema: accesso per sole finalità di manutenzione tecnica.],
+  [#strong[Destinatari terzi]], [#strong[Nessun destinatario esterno:] modelli di inferenza, banche dati ed esecutori operano interamente in rete locale (#emph[on-premise]). Nessun dato transita verso API cloud commerciali.],
+  [#strong[Diritti degli interessati]], [Esercizio dei diritti di accesso, rettifica, cancellazione e limitazione garantito e gestito direttamente tramite la segreteria dell'istituto.],
+)
+=== Adempimenti documentali
+<adempimenti-documentali>
+Prima dell'inizio delle attività devono essere predisposti: 1. Informativa sul trattamento dei dati per studenti e famiglie; 2. Aggiornamento del Registro dei Trattamenti dell'istituto; 3. Valutazione d'Impatto sulla Protezione dei Dati (DPIA) per l'introduzione di strumenti di intelligenza artificiale con minori; 4. Linee guida per gli studenti per l'uso esclusivo di dati sintetici o di fantasia nei test SQL.
+
+#horizontalrule
+
+== Misure di sicurezza tecniche e organizzative
+<sec-misure-sicurezza>
+- #strong[Isolamento di rete:] I server di inferenza (Ollama/vLLM) e i container di esecuzione risiedono nella sottorete dell'istituto priva di connessioni in uscita verso Internet; gli aggiornamenti di sistema e dei pacchetti Python/OS sono effettuati periodicamente tramite mirror o repository controllati.
+- #strong[Autenticazione e controllo degli accessi:] Integrazione con i sistemi di identità scolastici (SSO, LDAP/Active Directory o credenziali pseudonime gestite internamente); cifratura a riposo dei dischi server (#NormalTok("LUKS");) e dei backup.
+- #strong[Isolamento dell'esecutore SQL:] I file SQL consegnati sono trattati come non fidati. L'esecuzione avviene in container monouso senza rete o processi vincolati con #NormalTok("rlimit");, con database in memoria e autorizzatore SQLite attivo per bloccare chiamate al filesystem o estensioni C.
+- #strong[Protezione da #emph[Prompt Injection]:] Il codice e le motivazioni dello studente sono delimitati come meri dati passivi all'interno del contesto inviato all'LLM. Il modello tutor non dispone di tool d'azione, privilegi di esecuzione o accesso alla memoria esterna. Le risposte generate sono analizzate prima dell'invio allo studente per bloccare la fuga di soluzioni.
+- #strong[Tracciabilità e logging:] Conservazione dei log di sistema e delle chiamate di inferenza con canali separati per il monitoraggio operativo e la rilevazione tempestiva di eventuali anomalie.
+- #strong[Verifica delle licenze:] Accertamento della compatibilità per uso didattico e accademico delle licenze del software open-source e dei pesi dei modelli linguistici adottati (es. licenze Apache 2.0, MIT o specifiche per pesi aperti conformi all'Open Source Initiative).
+
+#horizontalrule
+
+== Valutazione e quadro regolatorio sull'Intelligenza Artificiale (AI Act)
+<sec-ai-act>
+- #strong[Assenza di decisioni automatizzate e di valutazione algoritmica:] Il sistema è privo di funzioni di calcolo di voti, attribuzione di punteggi sommatori o giudizi di idoneità. Gli esiti dei controlli tecnici deterministici costituiscono pure informazioni diagnostiche formative di processo. La valutazione finale resta un atto esclusivamente umano, esercitato dal docente sulla base di prove individuali in presenza (fase 9) e della lettura qualitativa degli elaborati. Questa scelta garantisce piena conformità con l'art. 22 del GDPR (divieto di decisioni basate unicamente sul trattamento automatizzato).
+- #strong[Inquadramento rispetto all'EU AI Act (Regolamento UE 2024/1689):] L'AI Act include tra i sistemi ad alto rischio (Allegato III, punto 3) i sistemi di IA destinati a valutare i risultati dell'apprendimento, anche quando tali esiti orientino il percorso scolastico. Socratic-DB è deliberatamente architettato per sottrarsi a tale perimetro:
+  - Non calcola punteggi;
+  - Non formula raccomandazioni vincolanti di avanzamento o blocco;
+  - Non stila graduatorie o profili predittivi dello studente. La classificazione va in ogni caso formalizzata nella scheda tecnica del sistema con il DPO dell'istituto.
+- #strong[Trasparenza e alfabetizzazione (Art. 50 AI Act):] Gli studenti sono esplicitamente informati del fatto che stanno interagendo con un agente artificiale. L'esperienza didattica è integrata da moduli di alfabetizzazione critica sull'IA, volti a chiarire come funziona il tutor, quali sono i suoi limiti e perché le verifiche tecniche provengono da software deterministico e non dal modello linguistico.
+- #strong[Percorso alternativo:] Viene garantita agli studenti e alle famiglie la possibilità di svolgere il medesimo percorso curricolare con modalità tradizionali (esercitazione standard guidata dal docente in aula e su materiale cartaceo/digitale convenzionale) senza alcuna penalizzazione.
+
+#horizontalrule
+
+== Limiti del sistema e minacce alla validità
+<sec-limiti-validita>
+- #strong[Allucinazioni e compiacenza dell'LLM (#emph[Sycophancy]):] I modelli linguistici possono produrre risposte errate, incoerenti o accondiscendere a ragionamenti scorretti. Per mitigare tale rischio, l'LLM è confinato al ruolo dialogico e le sue risposte sono vincolate alle diagnosi deterministiche.
+- #strong[Rigidità dei controlli deterministici:] I controlli automatici valutano solo ciò che è formalizzato nei test: un controllo eccessivamente stringente rischia di respingere schemi alternativi del tutto validi. Rimane sempre attiva la facoltà di segnalazione di falsi positivi al docente.
+- #strong[Limiti espressivi del DDL SQLite:] Vincoli di dominio che coinvolgono tuple multiple o dipendenze temporali complesse non sono esprimibili con semplici vincoli dichiarativi in SQLite e richiedono trigger o controlli applicativi.
+- #strong[Dipendenze funzionali incomplete:] La correttezza del calcolo delle forme normali (2NF, 3NF, BCNF) dipende dall'insieme delle dipendenze funzionali dichiarate dallo studente nel modello relazionale; se lo studente omette dipendenze fondamentali, il calcolo algoritmico risulterà parziale.
+- #strong[Limiti di scalabilità hardware:] Con una singola GPU locale da 32 GB di VRAM, la capacità di servizio simultaneo è calibrata su una singola classe (5--20 postazioni attive con intervalli di digitazione umana).
+- #strong[Automation bias del docente:] Nell'uso dello strumento d'autore (#ref(<sec-strumento-autore>, supplement: [Sezione])), esiste il rischio che il docente approvi la checklist o lo schema proposto dall'IA senza un'attenta rilettura critica. La validazione umana deve essere formalizzata come passaggio obbligatorio e verificata a campione.
+
+= Protocollo di sperimentazione empirica
+<sec-protocollo-sperimentazione>
+Prima di estendere l'adozione del sistema a più istituti o corsi, il progetto prevede una sperimentazione controllata volta a quantificare l'efficacia didattica, l'usabilità e la sostenibilità operativa.
+
+#horizontalrule
+
+== Fasi e disegno della ricerca
+<sec-disegno-ricerca>
+La sperimentazione si articola in sette passaggi metodologici:
+
++ #strong[Definizione degli obiettivi formativi mirati:] Focalizzazione su un sottoinsieme specifico di competenze modellistiche e interrogative (da O2 a O7: modellazione ER, traduzione in schema relazionale, individuazione di vincoli non banali, calcolo delle forme normali, scrittura di query SQL con aggregazioni e join).
+
++ #strong[Strumenti di misurazione standardizzati:]
+
+  - #emph[Pre-test diagnostico]: Somministrazione iniziale per rilevare il livello di partenza degli studenti.
+  - #emph[Attività formative con il tutor]: Svolgimento delle consegne C1--C4 con tracciamento dettagliato delle revisioni.
+  - #emph[Post-test individuale]: Valutazione delle competenze acquisite al termine dell'intervento.
+  - #emph[Prova di trasferimento a distanza (3--4 settimane)]: Risoluzione di una traccia inedita senza alcun supporto del tutor (fase 9 / consegna C5), per verificare la ritenzione nel medio termine e l'assenza di dipendenza dall'assistente.
+  - #emph[Correzione in cieco]: Valutazione degli elaborati da parte di due docenti indipendenti all'oscuro dell'identità dello studente, con rubrica analitica descrittiva e calcolo dell'indice di accordo inter-valutatore.
+
++ #strong[Validazione preventiva del tutor (Golden Set):] Prima dell'interazione con gli studenti, il tutor linguistico è sottoposto al golden set di collaudo (#ref(<sec-test-tutor-llm>, supplement: [Sezione])):
+
+  - Almeno 30 casi noti per ciascuna fase;
+  - Misurazione della fedeltà ai livelli di aiuto (nessun controesempio a L1, nessun codice risolutivo completo);
+  - Calcolo del tasso di mancata fuga della soluzione (obiettivo: 100%);
+  - Verifica di non-contraddizione rispetto alle diagnosi deterministiche.
+
++ #strong[Studio pilota:]
+
+  - Coinvolgimento di una o due classi (5--20 studenti per classe) per un ciclo di 6--8 lezioni curricolari in laboratorio.
+  - Disegno di ricerca prevalentemente #emph[intra-soggetto] (confronto pre/post sullo stesso gruppo di studenti).
+  - Rilevazione qualitativa continua: osservazione sul campo dei comportamenti degli studenti, registrazione dei blocchi tecnici o didattici, note del docente.
+  - Affinamento iterativo dei prompt, dei pesi di quantizzazione e delle regole di validazione prima della sperimentazione su scala più ampia.
+
++ #strong[Verifica empirica del trasferimento:] Confronto delle prestazioni della prova individuale finale rispetto al pre-test diagnostico iniziale, utilizzando una traccia concettualmente isomorfa ma ambientata in un dominio applicativo differente.
+
++ #strong[Analisi multidimensionale dei risultati:] Oltre ai punteggi grezzi di correttezza, l'analisi considera:
+
+  - #emph[Grado di autonomia]: Evoluzione della richiesta di livelli di aiuto (tendenza a diminuire il ricorso a L3/L4);
+  - #emph[Qualità del ragionamento]: Pertinenza, rigore e ricchezza delle motivazioni scritte nei campi #NormalTok("motivazione");\;
+  - #emph[Capacità di correzione attiva]: Analisi della cronologia dei commit Git tra il primo tentativo e la consegna validata;
+  - #emph[Esperienza percepita]: Questionario di fine percorso sull'utilità percepita, senso di autoefficacia e fiducia nel tutor.
+
++ #strong[Confronto controllato (Fase estesa successiva):] Qualora siano disponibili classi parallele con il medesimo programma curricolare, confronto tra:
+
+  - #emph[Gruppo sperimentale]: Attività svolta con Socratic-DB.
+  - #emph[Gruppo di controllo]: Attività tradizionale con correzione manuale periodica del docente. Adozione di schemi a rotazione (#emph[crossover]) per garantire a tutti gli studenti le medesime opportunità formative.
+
+#horizontalrule
+
+== Raccolta dati e metriche di processo
+<sec-raccolta-metriche>
+Tutti i dati raccolti sono associati esclusivamente a identificativi pseudonimi (#NormalTok("s001");, #NormalTok("s002");, …):
+
+- #strong[Metriche quantitative di sistema]:
+  - Numero di tentativi e commit effettuati per ciascuna fase;
+  - Frequenza e tipologia delle diagnosi deterministiche sollevate (es. violazioni di integrità referenziale, errori di normalizzazione, query SQL non sintattiche);
+  - Livello massimo di aiuto richiesto (L0--L4) per esercizio;
+  - Tempo impiegato per completare ciascuna consegna;
+  - Tempi effettivi di preparazione e validazione delle tracce da parte del docente (misura della sostenibilità).
+- #strong[Metriche di apprendimento]:
+  - Punteggi ottenuti nelle rubriche del pre-test, post-test e prova di trasferimento;
+  - Indice di qualità delle spiegazioni (rubrica qualitativa a 3 livelli).
+
+#horizontalrule
+
+== Analisi statistica e criteri di successo
+<sec-analisi-risultati>
+- #strong[Trattamento statistico:]
+  - Calcolo di statistiche descrittive (mediana, intervallo interquartile, medie e deviazioni standard);
+  - Stima delle dimensioni dell'effetto (#emph[effect size], es. d di Cohen o r di Wilcoxon) con intervalli di confidenza al 95%;
+  - Data la dimensione contenuta dei campioni tipici scolastici (5--20 studenti per classe), l'analisi quantitativa deve essere interpretata con prudenza ed essere corroborata dall'analisi qualitativa dei percorsi individuali.
+- #strong[Dichiarazione delle minacce alla validità:]
+  - #emph[Effetto novità]: Entusiasmo iniziale per l'uso dell'IA generativa;
+  - #emph[Apprendimento esterno]: Studio autonomo a casa o supporto di terzi tra pre-test e post-test;
+  - #emph[Maturazione naturale]: Miglioramento fisiologico dovuto al normale avanzamento dell'anno scolastico.
+
+=== Criteri di successo definiti a priori
+<criteri-di-successo-definiti-a-priori>
++ #strong[Incremento significativo nel post-test e nel trasferimento]: Miglioramento misurabile nella capacità di modellazione e interrogazione autonoma rispetto al livello di ingresso.
++ #strong[Riduzione della dipendenza dall'aiuto]: Diminuzione statisticamente visibile del livello medio di aiuto richiesto tra la prima e l'ultima consegna.
++ #strong[Miglioramento della capacità critica]: Incremento qualitativo dei testi di motivazione inseriti negli schemi.
++ #strong[Sostenibilità del carico di lavoro del docente]: Tempo medio di preparazione e validazione della traccia tramite strumento d'autore contenuto entro i 30 minuti; tempo di revisione per classe compatibile con il normale orario di servizio.
++ #strong[Accordo del tutor sulle query]: Accordo tra il parere non vincolante del tutor in fase 8 e il giudizio dei docenti su almeno l'85% del campione esaminato.
++ #strong[Zero incidenti di sicurezza e privacy]: Nessun dato personale esfiltrato e rispetto integrale dei protocolli approvati.
+
+#horizontalrule
+
+== Etica, governance e consenso
+<sec-etica-governance>
+- #strong[Approvazione formale degli organi collegiali:] Delibera del Collegio dei Docenti e del Consiglio di Istituto sull'adozione della sperimentazione.
+- #strong[Coinvolgimento del DPO:] Emissione del parere favorevole sulla DPIA e sulle informative per famiglie e studenti.
+- #strong[Volontarietà e diritto di recesso:] Possibilità per ogni studente di partecipare senza obbligo e di ritirarsi in qualsiasi momento optando per il percorso didattico alternativo tradizionale, senza alcuna penalizzazione sul piano valutativo curricolare.
+- #strong[Restituzione formativa:] Sessione finale di debriefing con gli studenti per discutere i risultati aggregati, le difficoltà emerse e il ruolo critico dell'IA nei contesti professionali.
+
+#bibliography(("riferimenti.bib"))
+
