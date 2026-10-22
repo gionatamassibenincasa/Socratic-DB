@@ -110,23 +110,65 @@ Il docente inserisce la traccia, senza soluzione. Lo strumento propone la checkl
 ### Catalogo di schemi-tipo
 Domini ricorrenti (prenotazioni e ticketing, e-commerce, gestione ospedaliera, biblioteca e prestiti) con checklist, errori tipici e, per alcuni domini, schema canonico con dataset e query attese già pronti. Il docente sceglie il modello e lo adatta alla traccia.
 
-### Tracce d'esame come punto di partenza
+### Tracce iniziali
 Le prove degli Esami di Stato sono una fonte primaria di tracce. Prima dell'uso, verificare note legali e licenza del sito del Ministero, citare la fonte e rimandare al documento originale senza riprodurlo. Elenco indicato dal proponente (i link non sono stati verificati uno per uno; il docente seleziona le prove con basi di dati):
 
-| Anno | Sessione | Codice | Link |
-| --- | --- | --- | --- |
-| 2005 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2005/tecnica/M733.pdf) |
-| 2007 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2007/M733.PDF) |
-| 2009 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2009/M733.pdf) |
-| 2011 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2011/M733.pdf) |
-| 2013 | Prova nazionale | M733 | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M733.pdf) |
-| 2016 | Ordinaria | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Ordinaria/M967_ORD16.pdf) |
-| 2016 | Straordinaria | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Straordinaria/M967_STR16.pdf) |
-| 2016 | Suppletiva | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Suppletiva/M967_SUP16.pdf) |
-| 2016 | Esempio di prova | M967 | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Esempio%20di%20prova/M967_SIM16.pdf) |
-| 2018 | Ordinaria | I044 | [PDF](https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Ordinaria/I044_ORD18.pdf) |
-| 2018 | Suppletiva | I044 | [PDF](https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Suppletiva/I044_SUP18.pdf) |
-| 2018 | Straordinaria | I044 | [PDF](https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Straordinaria/I044_STR18.pdf) |
+| Indirizzo | Anno | Sessione | Codice | Disciplina | Descrizione / Dominio | Link |
+| --- | --- | --- | --- | --- | --- | --- |
+| ITSI | 2005 | Prova nazionale | M733 | Informatica Generale e Gest. | Gestione aziendale e basi di dati | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2005/tecnica/M733.pdf) |
+| ITSI | 2007 | Prova nazionale | M733 | Informatica Generale e Gest. | Progettazione BD e sistemi di informazione | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2007/M733.PDF) |
+| ITSI | 2009 | Prova nazionale | M733 | Informatica Generale e Gest. | Sistema informativo aziendale e Web | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2009/M733.pdf) |
+| ITSI | 2011 | Prova nazionale | M733 | Informatica Generale e Gest. | Basi di dati e servizi web gestionali | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2011/M733.pdf) |
+| ITSI | 2013 | Prova nazionale | M733 | Informatica Generale e Gest. | Basi di dati e applicazioni web | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M733.pdf) |
+| ABACUS | 2010 | Ordinaria | M872 | Informatica / Sistemi | Sistema di gestione integrato e basi di dati | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2010/tecnica/M872.pdf) |
+| ABACUS | 2012 | Ordinaria | M872 | Informatica / Sistemi | Piattaforma e-commerce e catalogo prodotti | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2012/tecnica/M872.pdf) |
+| ABACUS | 2013 | Ordinaria | M872 | Informatica / Sistemi | Sistema prenotazioni e gestione servizi | [PDF](https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M872.pdf) |
+| ITIA | 2015 | Esempio di prova | M963 | Informatica (Database) | Gestione concorso musicale e votazioni | [PDF](https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Esempio%20di%20prova/M963_SIM.pdf) |
+| ITIA | 2015 | Ordinaria | M963 | Informatica (Database) | Monitoraggio ambientale e stazioni meteo | [PDF](https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Ordinaria/M963_ORD.pdf) |
+| ITIA | 2015 | Suppletiva | M963 | Informatica (Database) | Gestione rete di biblioteche e prestiti | [PDF](https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Suppletiva/M963_SUP.pdf) |
+| ITIA | 2015 | Straordinaria | M963 | Informatica (Database) | Piattaforma sharing economy / car pooling | [PDF](https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Straordinaria/M963_STR15.pdf) |
+| ITIA | 2016 | Esempio di prova | M967 | Informatica (Database) | Sistema gestione eventi e biglietteria online | [PDF](https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Esempio%20di%20prova/M967_SIM16.pdf) |
+| ITIA | 2017 | Ordinaria | I044 | Informatica (Database) | Piattaforma di e-learning e corsi online | [PDF](https://www.istruzione.it/esame_di_stato/201617/Istituti%20tecnici/Ordinaria/I044_ORD17.pdf) |
+| ITIA | 2017 | Suppletiva | I044 | Informatica (Database) | Gestione centro sportivo e prenotazione campi | [PDF](https://www.istruzione.it/esame_di_stato/201617/Istituti%20tecnici/Suppletiva/I044_SUP17.pdf) |
+| ITIA | 2017 | Straordinaria | I044 | Informatica (Database) | Sistema di gestione clienti e assistenza ticket | [PDF](https://www.istruzione.it/esame_di_stato/201617/Istituti%20tecnici/Straordinaria/I044_STR17.pdf) |
+| ITIA | 2019 | Simulazione 28 Feb | AB42 | Informatica + Sistemi e Reti | Prova mista: Piattaforma bike sharing e IoT | [PDF](https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Esempio%20di%20prova/28_febbraio_2019/AB42_SIM19.pdf) |
+| ITIA | 2019 | Simulazione 2 Apr | AB42 | Informatica + Sistemi e Reti | Prova mista: Piattaforma di Smart Parking | [PDF](https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Esempio%20di%20prova/02_aprile_2019/AB42_SIM19.pdf) |
+| ITIA | 2019 | Ordinaria | AB42 | Informatica + Sistemi e Reti | Prova mista: Gestione flotta robotica e DB | [PDF](https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Ordinaria/AB42_ORD19.pdf) |
+| ITIA | 2019 | Suppletiva | AB42 | Informatica + Sistemi e Reti | Prova mista: Sistema per il monitoraggio agricolo | [PDF](https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Suppletiva/AB42_SUP19.pdf) |
+| ITIA | 2019 | Straordinaria | AB42 | Informatica + Sistemi e Reti | Prova mista: Gestione logistica e magazzini | [PDF](https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Straordinaria/AB42_STR19.pdf) |
+| ITIA | 2022 | Ordinaria | ITIA | Informatica (Database) | Gestione prenotazioni e visite mediche | [PDF](https://www.istruzione.it/esame_di_stato/202122/Istituti%20tecnici/Ordinaria/ITIA_ORD22.pdf) |
+| ITIA | 2023 | Ordinaria | A038 | Informatica (Database) | Piattaforma di e-commerce e gestione ordini | [PDF](https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Ordinaria/A038_ORD23.pdf) |
+| ITIA | 2023 | Suppletiva | A038 | Informatica (Database) | Gestione catena di strutture alberghiere | [PDF](https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Suppletiva/A038_SUP23.pdf) |
+
+Anche le simulazioni fornite dagli editori di testi scolastici rappresentano punti di partenza significativi:
+
+| Editore / Fonte | Anno / Rif. | Oggetto / Sessione | Disciplina | Descrizione / Dominio | Link |
+| --- | --- | --- | --- | --- | --- |
+| Zanichelli | 2015 | Proposta / Simulazione 2ª Prova | Informatica | Progettazione BD e piattaforma per concorso musicale online | [PDF](https://online.scuola.zanichelli.it/provatecnici/wp-content/uploads/Zanichelli_Soluzione_Simulazione_2Prova_Informatica.pdf) |
+| Zanichelli | 2015 | Svolgimento Prova MIUR (16 Apr 2015) | Informatica | Soluzione guidata: BD per sistema di stazioni meteo e monitoraggio | [Link](https://online.scuola.zanichelli.it/provatecnici/informatica/) |
+| Zanichelli | 2013 | Archivio prove di esame | Informatica Gest. | Progettazione BD e architettura web per gestione aziendale | [Link](https://online.scuola.zanichelli.it/provatecnici/informatica/) |
+| Zanichelli | 2011 | Archivio prove di esame | Informatica Gest. | Modellazione BD, schema relazionale e interrogazioni SQL | [Link](https://online.scuola.zanichelli.it/provatecnici/informatica/) |
+| Zanichelli | 2008 | Archivio prove di esame | Informatica Gest. | Sistema informativo aziendale, DB e query di estrazione dati | [Link](https://online.scuola.zanichelli.it/provatecnici/informatica/) |
+| Zanichelli | 2003 | Archivio prove di esame | Informatica Gest. | Analisi del dominio, modello ER e strutturazione tabelle | [Link](https://online.scuola.zanichelli.it/provatecnici/informatica/) |
+| Zanichelli | 2002 | Archivio prove di esame | Informatica Gest. | Progettazione concettuale/logica di una base di dati | [Link](https://online.scuola.zanichelli.it/provatecnici/informatica/) |
+
+| Editore / Fonte | Rif. / Modulo | Oggetto / Titolo | Disciplina | Descrizione / Dominio | Contenuto Disponibile | Link |
+| --- | --- | --- | --- | --- | --- | --- |
+| Rizzoli Education / Tramontana | Simulazione 1 | Progettazione BD e Web | Informatica | Sistema di prenotazione e gestione strutture ricettive/hotel | Testo + Soluzione svolta | [Link](https://www.rizzolieducation.it/secondaria-secondo-grado/esami-di-stato/) |
+| Mondadori Education | Sezione Esame | Esercitazione d'Esame | Informatica / SIA | Analisi requisiti, schema relazionale e vincoli per servizi aziendali | Testo + Soluzione guidata | [Link](https://www.mondadorieducation.it/esame-di-stato-secondo-ciclo/) |
+| SEI Editrice | Prova Guidata | Simulazione Tipo | Informatica / SIA | Progettazione BD e piattaforma per la sanità digitale | Testo + Soluzione commentata | [Link](https://seieditrice.com/materiali-didattici/) |
+| Hoepli Scuola | Esercitazione C | Proposta di Simulazione | Informatica | Modellazione ER e architettura web per e-commerce | Testo + Soluzione dettagliata | [Link](https://www.hoepliscuola.it/p/esame-di-stato.html) |
+| Hoepli Scuola | Esercitazione D | Proposta di Simulazione | Informatica | Schema ER e query SQL per gestione centro sportivo | Testo + Soluzione dettagliata | [Link](https://www.hoepliscuola.it/p/esame-di-stato.html) |
+| Edizioni Atlas | Progetto Laboratorio | Esercizio Complesso BD | Informatica | Progettazione DB e script SQL per gestione biblioteca | Testo + Soluzione guidata | [Link](https://www.edatlas.it/it/docenti/esame-di-stato) |
+
+| Editore / Fonte | Rif. / Modulo | Oggetto / Titolo | Disciplina | Descrizione / Dominio | Contenuto Disponibile | Link |
+| --- | --- | --- | --- | --- | --- | --- |
+| Rizzoli Education / Tramontana | Simulazione 1 | Progettazione BD e Web | Informatica | Sistema di prenotazione e gestione strutture ricettive/hotel | Testo + Soluzione svolta | [Link](https://www.rizzolieducation.it/secondaria-secondo-grado/esami-di-stato/) |
+| Mondadori Education | Sezione Esame | Esercitazione d'Esame | Informatica / SIA | Analisi requisiti, schema relazionale e vincoli per servizi aziendali | Testo + Soluzione guidata | [Link](https://www.mondadorieducation.it/esame-di-stato-secondo-ciclo/) |
+| SEI Editrice | Prova Guidata | Simulazione Tipo | Informatica / SIA | Progettazione BD e piattaforma per la sanità digitale | Testo + Soluzione commentata | [Link](https://seieditrice.com/materiali-didattici/) |
+| Hoepli Scuola | Esercitazione C | Proposta di Simulazione | Informatica | Modellazione ER e architettura web per e-commerce | Testo + Soluzione dettagliata | [Link](https://www.hoepliscuola.it/p/esame-di-stato.html) |
+| Hoepli Scuola | Esercitazione D | Proposta di Simulazione | Informatica | Schema ER e query SQL per gestione centro sportivo | Testo + Soluzione dettagliata | [Link](https://www.hoepliscuola.it/p/esame-di-stato.html) |
+| Edizioni Atlas | Progetto Laboratorio | Esercizio Complesso BD | Informatica | Progettazione DB e script SQL per gestione biblioteca | Testo + Soluzione guidata | [Link](https://www.edatlas.it/it/docenti/esame-di-stato) |
 
 Per la fase 9 non si usano tracce pubbliche di cui circolano soluzioni online (e che una LLM può aver visto in addestramento): si adattano (dominio, requisiti, vincoli) o se ne scrivono di inedite.
 
