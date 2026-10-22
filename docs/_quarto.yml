@@ -1,0 +1,41 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Socratic-DB"
+  subtitle: "Tutor socratico per la progettazione di basi di dati relazionali"
+  author: "Gionata Massi"
+  date: today
+  chapters:
+    - index.md
+    - 01_stato_dell_arte.md
+    - 02_quadro_pedagogico.md
+    - 03_protocollo_didattico.md
+    - 04_architettura_sistema.md
+    - 05_formati_e_schemi.md
+    - 06_normativa_e_sicurezza.md
+    - 07_sperimentazione.md
+
+lang: it
+language: _language-it.yml
+bibliography: riferimenti.bib
+
+format:
+  typst:
+    keep-typ: true
+    toc: true
+    toc-title: "Indice dei contenuti"
+    number-sections: false
+    paper: a4
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+  docx:
+    toc: true
+    toc-title: "Indice dei contenuti"
+    number-sections: false
+  html:
+    theme: cosmo
+    toc: true
+    number-sections: false
