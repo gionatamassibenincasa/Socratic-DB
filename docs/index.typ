@@ -434,7 +434,7 @@
   title: [Socratic-DB],
   subtitle: [Tutor socratico per la progettazione di basi di dati relazionali],
   author: "Gionata Massi",
-  date: "2026-10-21",
+  date: "2026-10-23",
   lang: "it",
   main-color: brand-color.at("primary", default: blue),
   logo: {
@@ -464,25 +464,27 @@
 
 = Introduzione
 <introduzione>
-#strong[Sommario.] Questo documento descrive una proposta di strumento e metodologia didattica basata sul metodo socratico, per aiutare gli studenti ad acquisire la capacità di progettare e implementare basi di dati relazionali, dall'analisi concettuale al modello logico. Il processo mira a condurre lo studente a produrre una base di dati completa, pertinente, minimale e intelligibile a partire da una descrizione testuale del problema. La costruzione della conoscenza procede come dialogo tra l'arte della domanda, affidata a modelli linguistici, e il rigore della struttura, verificato mediante controlli logico-simbolici. Le abilità modellistiche e di programmazione sono oggetto di esercizio e feedback durante il percorso; la sperimentazione valuterà l'efficacia della proposta sulla base delle interazioni con il sistema, raccolte e trattate in forma pseudonimizzata secondo le regole definite per lo studio.
+#strong[Sommario.]
+
+Questo documento descrive una proposta di strumento e metodologia didattica basata sul metodo socratico, per aiutare gli studenti ad acquisire la capacità di progettare e implementare basi di dati relazionali, dall'analisi concettuale al modello logico. Il processo mira a condurre lo studente a produrre una base di dati completa, pertinente, minimale e intelligibile a partire da una descrizione testuale del problema. La costruzione della conoscenza procede come dialogo tra l'arte della domanda, affidata a modelli linguistici, e il rigore della struttura, verificato mediante controlli logico-simbolici. Le abilità modellistiche e di programmazione sono oggetto di esercizio e feedback durante il percorso; la sperimentazione valuterà l'efficacia della proposta sulla base delle interazioni con il sistema, raccolte e trattate in forma pseudonimizzata secondo le regole definite per lo studio e compatibili con il GDPR e l'IA Act.
 
 #strong[Socratic-DB] è un ambiente di apprendimento assistito dall'Intelligenza Artificiale Generativa per la scuola secondaria di secondo grado (ITE indirizzo #emph[Sistemi Informativi Aziendali] e ITT indirizzo #emph[Informatica]) e per corsi universitari introduttivi di basi di dati.
 
-Il progetto nasce da un principio pedagogico ed epistemologico chiaro: #strong[contrastare la delega cognitiva (#emph[cognitive offloading])] che sta avvenendo con l'uso acritico degli strumenti di #emph[Generative Artificial Intelligence] (GenIA). In questa proposta, il sistema non impiega i #emph[Large Language Model] (LLM) per risolvere i problemi o scrivere codice al posto dello studente, ma come #strong[tutor socratici]:
+Il progetto nasce da un principio pedagogico ed epistemologico chiaro: #strong[contrastare la delega cognitiva (#emph[cognitive offloading])] che sta avvenendo con l'uso acritico degli strumenti di #emph[Generative Artificial Intelligence] (GenIA). In questa proposta, il sistema non chiede ai #emph[Large Language Model] (LLM) di risolvere i problemi o scrivere codice al posto dello studente, ma come li fa agire come #strong[tutor socratici]:
 
 + #strong[La mediazione maieutica è affidata all'LLM]: attraverso domande mirate, controesempi concreti ed elicitazione progressiva dei vincoli (livelli di aiuto graduati da L0 a L4), il tutor guida lo studente nell'individuare errori concettuali e nel motivare formalmente ogni scelta di modellizzazione.
-+ #strong[La verità tecnica risiede in controlli deterministici]: l'LLM non valuta la correttezza formale. La validazione sintattica, il calcolo della chiusura degli attributi, la verifica delle forme normali (2NF, 3NF, BCNF) e l'esecuzione di DDL e query SQL sono affidati a un runtime deterministico e a un esecutore isolato SQLite.
++ #strong[La verità tecnica risiede in controlli deterministici]: l'LLM non valuta la correttezza formale. La validazione sintattica, il calcolo della chiusura degli attributi, la verifica delle forme normali (2NF, 3NF, BCNF) e l'esecuzione di DDL e QL SQL sono affidati a un runtime deterministico e a un esecutore SQLite che opera in memoria.
 + #strong[La valutazione resta prerogativa esclusiva del docente]: il sistema non assegna voti, non stila punteggi né profila gli studenti. La verifica dell'apprendimento effettivo avviene tramite prove individuali in presenza senza ausilio del tutor (#emph[prova di trasferimento]).
 
 == Piani di verifica della sperimentazione
 <piani-di-verifica-della-sperimentazione>
 La fattibilità e l'efficacia didattica della proposta sono da sperimentare su più piani (il dettaglio metodologico è approfondito nel documento di sperimentazione):
 
-- #strong[Piano del modello linguistico.] Non sappiamo se tra le proprietà emergenti dei LLM ci siano l'abilità maieutica e la capacità elicitativa che vorremmo. #emph[Verifica:] golden set di casi noti (#ref(<sec-test-tutor-llm>, supplement: [Sezione])\; #ref(<sec-disegno-ricerca>, supplement: [Sezione])).
-- #strong[Piano dell'infrastruttura di calcolo deterministica.] Un sistema che esegua i controlli e i processi richiesti è complesso: fattibilità e scalabilità non sono stimabili a priori, in assenza di prove empiriche. #emph[Verifica:] test dei controlli deterministici (#ref(<sec-test-controlli-deterministici>, supplement: [Sezione])) e studio pilota (#ref(<sec-disegno-ricerca>, supplement: [Sezione])).
-- #strong[Piano dell'efficacia didattica.] Non è possibile stabilirla a priori: servono test diagnostici pre e post sperimentazione per misurare l'incremento delle prestazioni. #emph[Verifica:] pre-test, post-test e prova di trasferimento (#ref(<sec-disegno-ricerca>, supplement: [Sezione])).
-- #strong[Piano della progressione didattica.] Il metodo e le fasi appaiono ben definiti per granularità e misurabilità, ma ciò va validato sperimentalmente: la suddivisione attuale potrebbe produrre un lavoro ingestibile per il docente o per lo studente, oppure risultare inefficace o inefficiente. #emph[Verifica:] osservazione nello studio pilota (#ref(<sec-disegno-ricerca>, supplement: [Sezione])) e analisi dei risultati (#ref(<sec-analisi-risultati>, supplement: [Sezione])).
-- #strong[Piano della sostenibilità per il docente.] Il tempo di preparazione delle tracce e di revisione dei risultati deve essere compatibile con classi numerose e tempi stretti (#ref(<sec-sostenibilita-docente>, supplement: [Sezione])). #emph[Verifica:] misura dei tempi nel pilota (#ref(<sec-raccolta-metriche>, supplement: [Sezione])).
+- #strong[Piano del modello linguistico.] Non sappiamo se tra le proprietà emergenti dei LLM ci siano l'abilità maieutica e la capacità elicitativa che desideriamo otterere. #emph[Verifica:] golden set di casi noti (#ref(<sec-test-tutor-llm>, supplement: [Sezione])\; #ref(<sec-disegno-ricerca>, supplement: [Sezione])).
+- #strong[Piano dell'infrastruttura di calcolo deterministica.] Un sistema che esegua i controlli e i processi richiesti è complesso: fattibilità e scalabilità non sono stimabili a priori, in assenza di prove empiriche. #emph[Verifica:] test dei controlli deterministici (#ref(<sec-test-controlli-deterministici>, supplement: [Sezione])) e studio pilota su classe di pochi studenti (#ref(<sec-disegno-ricerca>, supplement: [Sezione])).
+- #strong[Piano dell'efficacia didattica.] Non è possibile stabilirla a priori: servono test diagnostici pre e post sperimentazione per misurare l'incremento delle prestazioni. #emph[Verifica:] pre-test, post-test e prova di trasferimento (#ref(<sec-disegno-ricerca>, supplement: [Sezione])), analisi dei log di risoluzione di casi da parte degli stessi studenti dopo due o più iterazioni (#emph[follow up]).
+- #strong[Piano della progressione didattica.] Il metodo e le fasi appaiono ben definiti per granularità e misurabilità, ma ciò va validato sperimentalmente: la suddivisione attuale potrebbe produrre un lavoro ingestibile per il docente o per lo studente, oppure risultare inefficace o inefficiente. #emph[Verifica:] osservazione nello studio pilota (#ref(<sec-disegno-ricerca>, supplement: [Sezione])) e analisi dei risultati (#ref(<sec-analisi-risultati>, supplement: [Sezione])), test con scala di Likert per docenti e studenti.
+- #strong[Piano della sostenibilità per il docente.] Il tempo di preparazione delle tracce e di revisione dei risultati deve essere compatibile con classi numerose e tempi stretti (#ref(<sec-sostenibilita-docente>, supplement: [Sezione])). #emph[Verifica:] misura dei tempi nel pilota, test sull'accetazione del sistema con scala di Likert per docenti (#ref(<sec-raccolta-metriche>, supplement: [Sezione])).
 
 #horizontalrule
 
@@ -505,7 +507,7 @@ La documentazione del progetto è strutturata nei seguenti moduli tematici:
 <sec-introduzione-contesto>
 I modelli linguistici di grandi dimensioni (#emph[Large Language Models], LLM) hanno reso disponibili interfacce conversazionali capaci di produrre spiegazioni, esempi e codice in linguaggio naturale. Nella didattica dell'informatica, questa possibilità apre opportunità per sostenere l'esplorazione e il feedback, ma pone anche questioni relative all'affidabilità delle risposte, al ruolo attivo dello studente e alla valutazione dell'apprendimento @becker2023programming@denny2024computing@prather2023robots. Questi contributi discutono opportunità e criticità dell'IA generativa nell'istruzione e formazione informatica; non dimostrano, da soli, che un particolare modello o assetto didattico migliori gli apprendimenti in ogni contesto.
 
-Nel progetto di basi di dati relazionali, l'attività non si esaurisce nella produzione di una query eseguibile. Richiede di interpretare requisiti, costruire un modello concettuale, tradurlo in uno schema relazionale, esplicitare chiavi e vincoli e formulare interrogazioni coerenti con il significato del problema. Il modello relazionale costituisce un riferimento teorico per la rappresentazione dei dati e delle relazioni tra essi @codd1970relational, mentre il modello Entità/Associazioni è uno dei riferimenti classici per la progettazione concettuale @chen1976entity. La correttezza di una soluzione va quindi esaminata a più livelli: sintassi, proprietà formali dello schema, comportamento delle query e adeguatezza rispetto ai requisiti. Un controllo su un singolo insieme di dati, da solo, non prova la correttezza generale della soluzione.
+Nel progetto di basi di dati relazionali, l'attività non si esaurisce nella produzione di una query eseguibile. Richiede di interpretare requisiti, costruire un modello concettuale, tradurlo in uno schema relazionale, esplicitare chiavi e vincoli e formulare interrogazioni coerenti con il significato del problema. Il modello relazionale costituisce un riferimento teorico per la rappresentazione dei dati e delle relazioni tra essi @codd1970relational, mentre il modello Entità/Associazioni è uno dei riferimenti classici, e probabilmente il più utilizzato nella scuola secondaria di secondo grado, per la progettazione concettuale @chen1976entity. La correttezza di una soluzione va quindi esaminata a più livelli: sintassi, proprietà formali dello schema, comportamento delle query e adeguatezza rispetto ai requisiti. Un controllo su un singolo insieme di dati, da solo, non prova la correttezza generale della soluzione.
 
 #strong[Socratic-DB] è una proposta di supporto alla progettazione e all'apprendimento delle basi di dati che combina tre componenti con responsabilità distinte:
 
@@ -631,7 +633,7 @@ La differenza che la proposta intende mettere alla prova è l'integrazione di un
 <sec-destinatari>
 Studenti del secondo biennio e del quinto anno di un Istituto Tecnico Economico (ITE), indirizzo «Amministrazione, Finanza e Marketing», articolazione «Sistemi Informativi Aziendali» (SIA, codice ITSI), o di un Istituto Tecnico Tecnologico (ITT), indirizzo «Informatica e Telecomunicazioni», articolazione «Informatica» (codice ITIA), in classi da 5 a 20 persone, con lavoro individuale o a coppie.
 
-Il sistema è progettato tenendo conto dei quadri di riferimento e dei nuclei fondanti della seconda prova scritta dell'Esame di Stato per le discipline d'indirizzo. I quadri di riferimento di ITIA e ITSI includono tra i nuclei la progettazione concettuale, logica e fisica di basi di dati e i linguaggi per basi di dati; la disciplina della seconda prova varia da un anno all'altro. Tali prove richiedono di ricavare le specifiche progettuali da una traccia reale, sviluppare la modellizzazione concettuale del problema, tradurla nel modello logico-relazionale, realizzare la base di dati e formulare le query di interrogazione in linguaggio SQL.
+Il sistema è progettato tenendo conto dei quadri di riferimento e dei nuclei fondanti della seconda prova scritta dell'Esame di Stato per le discipline d'indirizzo. I quadri di riferimento di ITIA e ITSI includono tra i nuclei la progettazione concettuale, logica e fisica di basi di dati e i linguaggi per basi di dati; la disciplina della seconda prova varia da un anno all'altro e può avere come disciplina di riferimento l'Informatica, come disciplina unica o in associazione a un'altra, oppure un'altra disciplina d'indirizzo. Tali prove frequentemente richiedono di ricavare le specifiche progettuali da una traccia reale, sviluppare la modellizzazione concettuale del problema, tradurla nel modello logico-relazionale, realizzare la base di dati e formulare le query di interrogazione in linguaggio SQL.
 
 La sperimentazione può inoltre essere estesa e adattata come supporto all'auto-apprendimento guidato in un primo corso universitario di «Basi di Dati» (lauree triennali in Informatica o Ingegneria Informatica).
 
@@ -846,28 +848,59 @@ Il docente inserisce la traccia, senza soluzione. Lo strumento propone la checkl
 <catalogo-di-schemi-tipo>
 Domini ricorrenti (prenotazioni e ticketing, e-commerce, gestione ospedaliera, biblioteca e prestiti) con checklist, errori tipici e, per alcuni domini, schema canonico con dataset e query attese già pronti. Il docente sceglie il modello e lo adatta alla traccia.
 
-=== Tracce d'esame come punto di partenza
-<tracce-desame-come-punto-di-partenza>
-Le prove degli Esami di Stato sono una fonte primaria di tracce. Prima dell'uso, verificare note legali e licenza del sito del Ministero, citare la fonte e rimandare al documento originale senza riprodurlo. Elenco indicato dal proponente (i link non sono stati verificati uno per uno; il docente seleziona le prove con basi di dati):
+=== Tracce iniziali
+<tracce-iniziali>
+Le prove degli Esami di Stato sono una fonte primaria di tracce. Prima dell'uso, verificare note legali e licenza del sito del Ministero. I PDF riportati sono stati verificati il 22 ottobre 2026.
+
+#table(
+  columns: (14.29%, 14.29%, 14.29%, 14.29%, 14.29%, 14.29%, 14.29%),
+  align: (auto,auto,auto,auto,auto,auto,auto,),
+  table.header([Indirizzo], [Anno], [Sessione], [Codice], [Disciplina], [Traccia / dominio nel PDF], [PDF e fonte],),
+  table.hline(),
+  [ITC -- Programmatori], [2005], [Ordinaria], [M733], [Informatica Generale ed Applicazioni Gestionali], [Gestione corsi e iscrizioni di una palestra], [#link("fonti/prove-di-esempio/2005_M733_ITC_ordinaria_palestra.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2005/tecnica/M733.pdf")[Ministero]],
+  [ITC -- Programmatori], [2007], [Ordinaria], [M733], [Informatica Generale ed Applicazioni Gestionali], [Studio medico associato: medici, visite, pazienti e prestazioni], [#link("fonti/prove-di-esempio/2007_M733_ITC_ordinaria_studio-medico.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2007/M733.PDF")[Ministero]],
+  [ITC -- Programmatori], [2009], [Ordinaria], [M733], [Informatica Generale ed Applicazioni Gestionali], [Casa editrice di riviste specialistiche, abbonati e punti vendita], [#link("fonti/prove-di-esempio/2009_M733_ITC_ordinaria_riviste.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2009/M733.pdf")[Ministero]],
+  [ITC -- Programmatori], [2011], [Ordinaria], [M733], [Informatica Generale ed Applicazioni Gestionali], [Agenzia immobiliare e affitti brevi con prenotazioni online], [#link("fonti/prove-di-esempio/2011_M733_ITC_ordinaria_affitti-brevi.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2011/M733.pdf")[Ministero]],
+  [ITC -- Programmatori], [2013], [Ordinaria], [M733], [Informatica Generale ed Applicazioni Gestionali], [Biglietteria online per un museo e le sue esposizioni], [#link("fonti/prove-di-esempio/2013_M733_ITC_ordinaria_biglietteria-museo.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M733.pdf")[Ministero]],
+  [ITIA -- Informatica], [2015], [Simulazione / esempio], [M963\*], [Informatica], [Consorzio caseario: produzione, vendite e caseifici], [#link("fonti/prove-di-esempio/2015_M963_simulazione_consorzio-caseario.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Esempio%20di%20prova/M963_SIM.pdf")[Ministero]],
+  [ITIA -- Informatica], [2015], [Ordinaria], [M963], [Informatica], [Web community per condividere e commentare eventi dal vivo], [#link("fonti/prove-di-esempio/2015_M963_ordinaria_web-community-eventi.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Ordinaria/M963_ORD.pdf")[Ministero]],
+  [ITIA -- Informatica], [2015], [Suppletiva], [M963], [Informatica], [Rete di centri e prestito di risorse multimediali], [#link("fonti/prove-di-esempio/2015_M963_suppletiva_prestito-risorse-multimediali.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Suppletiva/M963_SUP.pdf")[Ministero]],
+  [ITSI -- Sistemi Informativi Aziendali], [2016], [Esempio di prova], [M967], [Informatica], [Azienda di abbigliamento e tracciamento dei capi nei punti vendita], [#link("fonti/prove-di-esempio/2016_M967_esempio_ITSI_tracciabilita-abbigliamento.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Esempio%20di%20prova/M967_SIM16.pdf")[Ministero]],
+  [ITIA -- Informatica], [2017], [Ordinaria], [I044], [Informatica], [Piattaforma web di car pooling], [#link("fonti/prove-di-esempio/2017_I044_ordinaria_carpooling.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201617/Istituti%20tecnici/Ordinaria/I044_ORD17.pdf")[Ministero]],
+  [ITIA -- Informatica], [2017], [Suppletiva], [I044], [Informatica], [Applicazione web per la gestione delle assenze scolastiche], [#link("fonti/prove-di-esempio/2017_I044_suppletiva_assenze-scolastiche.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201617/Istituti%20tecnici/Suppletiva/I044_SUP17.pdf")[Ministero]],
+  [ITIA -- Informatica], [2017], [Straordinaria], [I044], [Informatica], [Piattaforma per candidature a una manifestazione culturale], [#link("fonti/prove-di-esempio/2017_I044_straordinaria_manifestazione-culturale.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201617/Istituti%20tecnici/Straordinaria/I044_STR17.pdf")[Ministero]],
+  [ITIA -- Informatica], [2019], [Ordinaria], [---], [Informatica e Sistemi e Reti], [Servizio multimediale per punti di interesse turistici], [#link("fonti/prove-di-esempio/2019_ITIA_ordinaria_POI-turistici.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Ordinaria/AB42_ORD19.pdf")[Ministero]],
+  [ITIA -- Informatica], [2019], [Suppletiva], [---], [Informatica e Sistemi e Reti], [Azienda di assistenza hardware/software e consulenza informatica], [#link("fonti/prove-di-esempio/2019_ITIA_suppletiva_assistenza-informatica.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Suppletiva/AB42_SUP19.pdf")[Ministero]],
+  [ITIA -- Informatica], [2019], [Straordinaria], [---], [Informatica e Sistemi e Reti], [Sistema ospedaliero per la gestione delle terapie dei pazienti], [#link("fonti/prove-di-esempio/2019_ITIA_straordinaria_terapie-ospedaliere.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Straordinaria/AB42_STR19.pdf")[Ministero]],
+  [ITIA -- Informatica], [2023], [Ordinaria], [A038], [Informatica], [Piattaforma scolastica per educational games], [#link("fonti/prove-di-esempio/2023_A038_ordinaria_giochi-educativi.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Ordinaria/A038_ORD23.pdf")[Ministero]],
+  [ITIA -- Informatica], [2023], [Suppletiva], [A038], [Informatica], [Servizio di accesso a una rete di palestre per utenti in viaggio], [#link("fonti/prove-di-esempio/2023_A038_suppletiva_rete-palestre.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Suppletiva/A038_SUP23.pdf")[Ministero]],
+)
+Nel PDF di simulazione ministeriale del 2015 il codice M963 compare nel nome del file, non nel testo della prova (\*). Nei PDF del 2019 non è riportato un codice nel frontespizio; per questo non ne è indicato uno. Le voci i cui URL ministeriali restituivano un errore 404 sono state escluse finché non sarà disponibile una fonte funzionante.
+
+Anche materiali editoriali e soluzioni possono essere utili per preparare esercizi e confrontare svolgimenti; quando una risorsa contiene la soluzione, non va confusa con una traccia inedita né usata come prova di trasferimento.
 
 #table(
   columns: (25%, 25%, 25%, 25%),
   align: (auto,auto,auto,auto,),
-  table.header([Anno], [Sessione], [Codice], [Link],),
+  table.header([Editore / Fonte], [Anno], [Contenuto], [Risorsa],),
   table.hline(),
-  [2005], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2005/tecnica/M733.pdf")[PDF]],
-  [2007], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2007/M733.PDF")[PDF]],
-  [2009], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2009/M733.pdf")[PDF]],
-  [2011], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2011/M733.pdf")[PDF]],
-  [2013], [Prova nazionale], [M733], [#link("https://www.istruzione.it/esame_di_stato/Secondo_Ciclo/tracce_prove_scritte/2013/allegati/M733.pdf")[PDF]],
-  [2016], [Ordinaria], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Ordinaria/M967_ORD16.pdf")[PDF]],
-  [2016], [Straordinaria], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Straordinaria/M967_STR16.pdf")[PDF]],
-  [2016], [Suppletiva], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Suppletiva/M967_SUP16.pdf")[PDF]],
-  [2016], [Esempio di prova], [M967], [#link("https://www.istruzione.it/esame_di_stato/201516/Istituti%20tecnici/Esempio%20di%20prova/M967_SIM16.pdf")[PDF]],
-  [2018], [Ordinaria], [I044], [#link("https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Ordinaria/I044_ORD18.pdf")[PDF]],
-  [2018], [Suppletiva], [I044], [#link("https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Suppletiva/I044_SUP18.pdf")[PDF]],
-  [2018], [Straordinaria], [I044], [#link("https://www.istruzione.it/esame_di_stato/201718/Istituti%20tecnici/Straordinaria/I044_STR18.pdf")[PDF]],
+  [Zanichelli], [2019], [Prova ministeriale ordinaria e svolgimento Zanichelli: servizio multimediale per punti di interesse turistici], [#link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/AB42_ORD19.pdf")[Testo della prova] · #link("fonti/prove-di-esempio/Zanichelli_Esame_2019_svolgimento.pdf")[Svolgimento locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Esame_2019_svolgimento.pdf")[Zanichelli]],
+  [Zanichelli], [2017], [Svolgimento della prova ministeriale ordinaria sul car pooling], [#link("fonti/prove-di-esempio/Zanichelli_Soluzione_Informatica_2017.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Soluzione_Informatica_2017.pdf")[Zanichelli]],
+  [Zanichelli], [2017], [Simulazione sul sistema di prenotazione di visite guidate: testo e svolgimento riservato ai docenti], [#link("fonti/prove-di-esempio/Zanichelli_Simulazione_Informatica_Testo_2017.pdf")[Testo] · #link("fonti/prove-di-esempio/Zanichelli_Simulazione_Informatica_Svolgimento_2017.pdf")[Svolgimento riservato]],
+  [Zanichelli], [2016], [Simulazione di Informatica sulla gestione del traffico merci di un terminal marittimo: testo e svolgimento riservato ai docenti], [#link("fonti/prove-di-esempio/Zanichelli_Informatica_Simulazione_dicembre2016.pdf")[Testo] · #link("fonti/prove-di-esempio/Zanichelli_Informatica_Simulazione_Svolgimento_dicembre2016.pdf")[Svolgimento riservato]],
+  [Zanichelli], [2015], [Prova ministeriale ordinaria sulla web community per eventi dal vivo, con svolgimento Zanichelli], [#link("fonti/prove-di-esempio/2015_Zanichelli_Esame_Informatica.pdf")[PDF locale] · #link("https://www.istruzione.it/esame_di_stato/201415/Istituti%20tecnici/Ordinaria/M963_ORD.pdf")[Ministero]],
+  [Zanichelli], [2015], [Simulazione sulla gestione di un consorzio caseario, con svolgimento], [#link("fonti/prove-di-esempio/2015_Zanichelli_simulazione_consorzio-caseario_svolgimento.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici/wp-content/uploads/Zanichelli_Soluzione_Simulazione_2Prova_Informatica.pdf")[Zanichelli]],
+  [Zanichelli], [2013], [Traccia d'esame di Informatica ABACUS: controlli passeggeri e merci in aeroporto], [#link("fonti/prove-di-esempio/2013_Zanichelli_Formichi_Tema_Esame_completa.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Formichi_Tema_Esame_2013_completa.pdf")[Zanichelli]],
+  [Zanichelli], [2011], [Traccia d'esame di Informatica ABACUS: censimento di fauna e flora nei parchi naturali], [#link("fonti/prove-di-esempio/2011_Zanichelli_Formichi_Tema_Esame.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Formichi_Tema_Esame_2011.pdf")[Zanichelli]],
+  [Zanichelli], [2008], [Traccia d'esame di Informatica ABACUS: gestione delle Olimpiadi Internazionali di Informatica], [#link("fonti/prove-di-esempio/2008_Zanichelli_Formichi_Tema_Esame.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Formichi_Tema_Esame_2008.pdf")[Zanichelli]],
+  [Zanichelli], [2003], [Traccia d'esame di Informatica ABACUS: gestione delle attività di un vivaio], [#link("fonti/prove-di-esempio/2003_Zanichelli_Formichi_Tema_Esame.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Formichi_Tema_Esame_2003.pdf")[Zanichelli]],
+  [Zanichelli], [2002], [Traccia d'esame di Informatica ABACUS: gestione di una Banca del Tempo], [#link("fonti/prove-di-esempio/2002_Zanichelli_Formichi_Tema_Esame.pdf")[PDF locale] · #link("https://online.scuola.zanichelli.it/provatecnici-files/Informatica/Zanichelli_Formichi_Tema_Esame_2002.pdf")[Zanichelli]],
+  [Zanichelli], [Archivio], [Pagina Informatica con prove e svolgimenti; alcuni materiali sono riservati ai docenti], [#link("https://online.scuola.zanichelli.it/provatecnici/informatica/")[Archivio prove]],
+  [Hoepli], [2026], [Prove e proposte di simulazione per ITT Informatica e Sistemi e reti], [#link("https://www.hoeplieditore.it/storage/app/uploads/public/699/83a/8c2/69983a8c24f84650292718.pdf")[PDF ITT Informatica] · #link("https://www.hoeplieditore.it/scuola/notizia/didattica-digitale-integrata/materiali-la-prova-di-maturita")[Pagina dei materiali]],
+  [Edizioni Atlas], [2026], [Guida alle prove della Maturità e indicazioni per consultare le tracce degli anni precedenti sul sito del Ministero], [#link("https://www.edatlas.it/it/magazine/cosa-ce-di-nuovo/maturita-esame-2026")[Guida all'Esame di Maturità]],
 )
+I materiali caricati e contrassegnati come copie riservate ai docenti sono destinati esclusivamente all'area ad accesso ristretto: non pubblicare questi file né l'output Quarto che li include su un sito accessibile senza autenticazione. Le pagine Hoepli e Atlas sono risorse informative, non prove editoriali autonome. Le vecchie pagine di Rizzoli Education, Mondadori Education, SEI ed Edizioni Atlas indicate in precedenza non identificavano materiali specifici accessibili o non sono più raggiungibili e non sono state ripristinate. La pagina attuale di Rizzoli reperita riguarda un webinar del 2025, non una traccia o un PDF di esercizi.
+
 Per la fase 9 non si usano tracce pubbliche di cui circolano soluzioni online (e che una LLM può aver visto in addestramento): si adattano (dominio, requisiti, vincoli) o se ne scrivono di inedite.
 
 === Report compatto
@@ -1200,6 +1233,88 @@ Il repository o spazio di lavoro dello studente si compone di file standardizzat
   [#NormalTok("08_query.sql");], [SQL (SQLite)], [Query #NormalTok("SELECT"); con commento di motivazione della formulazione logica.],
   [#NormalTok("motivazioni.md");], [Markdown], [Registro narrativo delle decisioni di riprogettazione adottate a seguito dei feedback.],
 )
+
+#horizontalrule
+
+== Catalogo, conversione e distribuzione delle tracce
+<sec-catalogo-tracce>
+Il sistema gestisce ogni traccia come un materiale con una fonte, metadati e derivati distinti. Il PDF acquisito dall'archivio ministeriale o dall'editore è conservato come originale di riferimento; il testo estratto e revisionato è registrato in Markdown; il PDF destinato alla lettura o alla stampa è generato dal Markdown. Originale e derivati non vanno sovrascritti l'uno con l'altro: ogni versione deve poter essere ricondotta alla fonte e alla revisione che l'ha prodotta.
+
+=== Metadati del catalogo
+<sec-metadati-tracce>
+Ogni scheda identifica il materiale e ne descrive provenienza, uso consentito e contenuto didattico. I campi minimi sono:
+
+#table(
+  columns: (50%, 50%),
+  align: (auto,auto,),
+  table.header([Campo], [Descrizione],),
+  table.hline(),
+  [#NormalTok("id");], [Identificatore stabile, indipendente dal nome del file.],
+  [#NormalTok("titolo");], [Titolo breve e riconoscibile della traccia o del materiale.],
+  [#NormalTok("anno_esame"); e #NormalTok("anno_scolastico");], [Anno della prova e anno scolastico a cui si riferisce, se ricavabile dalla fonte. Non inferire l'uno dall'altro senza dichiarare la regola adottata.],
+  [#NormalTok("indirizzo");], [Indirizzo e articolazione dell'Istituto Tecnico, quando applicabili e indicati nel documento.],
+  [#NormalTok("disciplina");], [Disciplina o discipline riportate nella prova.],
+  [#NormalTok("sessione");], [Ordinaria, suppletiva, straordinaria, simulazione o altra tipologia attestata dalla fonte.],
+  [#NormalTok("fonte");], [Ente o editore, URL di provenienza, data di acquisizione e citazione da riportare nei derivati.],
+  [#NormalTok("riassunto");], [Sintesi redazionale del dominio e dei requisiti, da confrontare con il testo originale.],
+  [#NormalTok("stato_diritti"); e #NormalTok("accesso");], [Esito della verifica dei diritti e profilo di accesso assegnato al materiale.],
+  [#NormalTok("originale");, #NormalTok("markdown"); e #NormalTok("pdf_esportato");], [Riferimenti ai file corrispondenti, se presenti e autorizzati per il rispettivo uso.],
+  [#NormalTok("classificazione_didattica");], [Valutazione opzionale di difficoltà modellistica e competenze richieste per le query, con griglia di valutazione, versione e revisore.],
+)
+La classificazione didattica non è un fatto estratto automaticamente dalla prova: va motivata e revisionata da un docente. Può descrivere separatamente aspetti quali individuazione delle entità e delle relazioni, cardinalità e vincoli, trasformazione in schema relazionale, normalizzazione, uso di join, aggregazioni, sottoquery e gestione di vincoli temporali. Un campo non ancora valutato resta esplicitamente non classificato; una proposta automatica non diventa metadato approvato senza revisione.
+
+Esempio indicativo di scheda:
+
+#Skylighting(([#FunctionTok("versione_catalogo");#KeywordTok(":");#AttributeTok(" ");#DecValTok("1");],
+[#FunctionTok("id");#KeywordTok(":");#AttributeTok(" mim-2018-19-itia-ordinaria-ab42");],
+[#FunctionTok("titolo");#KeywordTok(":");#AttributeTok(" Servizio multimediale per punti di interesse turistici");],
+[#FunctionTok("anno_esame");#KeywordTok(":");#AttributeTok(" ");#DecValTok("2019");],
+[#FunctionTok("anno_scolastico");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"2018/19\"");],
+[#FunctionTok("criterio_anno_scolastico");#KeywordTok(":");#AttributeTok(" Attribuito alla sessione d'esame dell'anno solare 2019.");],
+[#FunctionTok("indirizzo");#KeywordTok(":");],
+[#AttributeTok("  ");#FunctionTok("istituto");#KeywordTok(":");#AttributeTok(" tecnico");],
+[#AttributeTok("  ");#FunctionTok("codice");#KeywordTok(":");#AttributeTok(" ITIA");],
+[#AttributeTok("  ");#FunctionTok("articolazione");#KeywordTok(":");#AttributeTok(" Informatica");],
+[#FunctionTok("disciplina");#KeywordTok(":");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" Informatica");],
+[#AttributeTok("  ");#KeywordTok("-");#AttributeTok(" Sistemi e Reti");],
+[#FunctionTok("sessione");#KeywordTok(":");#AttributeTok(" ordinaria");],
+[#FunctionTok("fonte");#KeywordTok(":");],
+[#AttributeTok("  ");#FunctionTok("ente");#KeywordTok(":");#AttributeTok(" Ministero dell'Istruzione");],
+[#AttributeTok("  ");#FunctionTok("url");#KeywordTok(":");#AttributeTok(" https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Ordinaria/AB42_ORD19.pdf");],
+[#AttributeTok("  ");#FunctionTok("acquisita_il");#KeywordTok(":");#AttributeTok(" ");#StringTok("\"2026-10-22\"");],
+[#FunctionTok("riassunto");#KeywordTok(":");#AttributeTok(" Servizio per distribuire contenuti multimediali sui punti di interesse di una città.");],
+[#FunctionTok("stato_diritti");#KeywordTok(":");#AttributeTok(" da_verificare");],
+[#FunctionTok("accesso");#KeywordTok(":");#AttributeTok(" non_distribuibile_fino_a_verifica");],
+[#FunctionTok("originale");#KeywordTok(":");#AttributeTok(" fonti/ministero/AB42_ORD19.pdf");],
+[#FunctionTok("markdown");#KeywordTok(":");#AttributeTok(" tracce/mim-2018-19-itia-ordinaria-ab42.md");],
+[#FunctionTok("pdf_esportato");#KeywordTok(":");#AttributeTok(" ");#CharTok("null");],
+[#FunctionTok("classificazione_didattica");#KeywordTok(":");],
+[#AttributeTok("  ");#FunctionTok("stato");#KeywordTok(":");#AttributeTok(" da_valutare");],
+[#AttributeTok("  ");#FunctionTok("griglia_di_valutazione");#KeywordTok(":");#AttributeTok(" ");#CharTok("null");],
+[#AttributeTok("  ");#FunctionTok("difficolta_modellistica");#KeywordTok(":");#AttributeTok(" ");#CharTok("null");],
+[#AttributeTok("  ");#FunctionTok("competenze_query");#KeywordTok(":");#AttributeTok(" ");#KeywordTok("[]");],
+[#AttributeTok("  ");#FunctionTok("revisore");#KeywordTok(":");#AttributeTok(" ");#CharTok("null");],));
+Gli identificatori, i percorsi e i valori dell'esempio sono illustrativi: il catalogo effettivo deve usare identificatori univoci, percorsi gestiti dal sistema e valori controllati per stato dei diritti e accesso.
+
+=== Acquisizione, trascrizione ed esportazione
+<sec-pipeline-tracce>
+Il flusso di trattamento è il seguente:
+
++ #strong[Acquisizione]: conservare l'originale senza modificarlo, registrare URL, titolare/editor, data di acquisizione, impronta del file e stato di accesso. Deduplicare per contenuto, mantenendo eventuali fonti e attribuzioni diverse.
++ #strong[Verifica preliminare]: identificare se il documento è una traccia, una soluzione, una simulazione o materiale editoriale; rilevare avvisi di riservatezza e dati personali. Assegnare l'accesso prima di creare copie destinate alla distribuzione.
++ #strong[Estrazione]: estrarre il testo dal PDF e produrre Markdown strutturato; ricorrere all'OCR solo quando necessario e registrare il metodo e gli eventuali limiti. Conservare la paginazione o riferimenti di pagina utili a verificare la trascrizione.
++ #strong[Revisione]: confrontare Markdown e PDF pagina per pagina, correggere errori di estrazione e verificare tabelle, formule, immagini e caratteri. Una persona approva la trascrizione e il riassunto prima che siano usati per generare una consegna.
++ #strong[Arricchimento didattico]: aggiungere riassunto, difficoltà e competenze come annotazioni separate dal testo della fonte, con autore o revisore e data. Non presentare classificazioni non verificate come dati ufficiali.
++ #strong[Esportazione]: generare il PDF per gli studenti esclusivamente da una versione Markdown approvata e autorizzata per quel pubblico. Il PDF deve riportare identificativo, attribuzione e versione; non deve includere svolgimenti, note riservate o metadati interni.
+
+=== Diritti, riservatezza e profili di distribuzione
+<sec-accesso-tracce>
+La provenienza ministeriale, la pubblicazione di una traccia d'esame o la sua riproduzione su un quotidiano non sono, da sole, una verifica sufficiente del pubblico dominio o del diritto di redistribuire qualsiasi copia. Per ciascun originale e derivato occorre registrare la base di utilizzo, le condizioni di attribuzione e l'esito della verifica prima della distribuzione. In particolare, una soluzione editoriale è un contenuto distinto dalla traccia ministeriale e non ne eredita automaticamente i diritti o le condizioni d'uso.
+
+Il catalogo distingue almeno materiali #strong[pubblicabili agli studenti], materiali #strong[ad accesso riservato ai docenti] e materiali #strong[in attesa di verifica], che non sono distribuibili. Gli svolgimenti riservati, i file con avvisi di copia per docenti e documenti contenenti dati identificativi restano nell'area protetta; non si riproducono tali dati nei metadati o nei PDF esportati. Eventuali copie anonimizzate si creano solo se autorizzate, mantenendo l'originale nell'archivio protetto e documentando la trasformazione.
+
+Gli originali e le trascrizioni riservati non devono trovarsi in directory incluse automaticamente nella build pubblica. In particolare, il rendering Quarto può copiare nel sito gli asset collocati sotto #NormalTok("docs/");: l'output per studenti va quindi generato da un insieme esplicitamente autorizzato, separato dal deposito delle fonti e dei materiali per docenti. Il repository Git, le copie di build e i backup devono rispettare lo stesso profilo di accesso del materiale; una directory esclusa da Git non costituisce, da sola, un archivio controllato né garantisce che gli asset non siano pubblicati da altri passaggi della pipeline.
 
 #horizontalrule
 
