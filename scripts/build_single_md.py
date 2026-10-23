@@ -5,14 +5,33 @@ Legge la sequenza dei capitoli configurata in docs/_quarto.yml e produce dist/so
 """
 
 from pathlib import Path
+import re
 import yaml
 import sys
+
+from build_trace_tables import build_trace_tables
+
+
+GENERATED_INCLUDE = re.compile(r"\{\{<\s*include\s+([^ >]+)\s*>\}\}")
+
+
+def resolve_generated_includes(content, docs_dir):
+    def replace_include(match):
+        include_path = docs_dir / match.group(1)
+        if not include_path.is_file():
+            raise FileNotFoundError(f"File Markdown incluso non trovato: {include_path}")
+        return include_path.read_text(encoding="utf-8").strip()
+
+    return GENERATED_INCLUDE.sub(replace_include, content)
+
 
 def build_single_markdown():
     root_dir = Path(__file__).resolve().parent.parent
     docs_dir = root_dir / "docs"
     quarto_cfg = docs_dir / "_quarto.yml"
     dist_dir = root_dir / "dist"
+
+    build_trace_tables()
 
     if not quarto_cfg.exists():
         print(f"Errore: file di configurazione Quarto non trovato: {quarto_cfg}", file=sys.stderr)
@@ -56,7 +75,7 @@ def build_single_markdown():
             continue
 
         with open(ch_path, "r", encoding="utf-8") as f:
-            content = f.read().strip()
+            content = resolve_generated_includes(f.read().strip(), docs_dir)
 
         parts.append(f"\n\n<!-- INIZIO CAPITOLO: {ch} -->\n\n{content}\n\n---\n")
 

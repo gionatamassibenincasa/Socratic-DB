@@ -18,3 +18,4 @@ venv/
 **/*.quarto_ipynb
 
 docs/fonti
+/docs/_generated/
