@@ -1,6 +1,8 @@
 project:
   type: book
   output-dir: _book
+  pre-render:
+    - ../scripts/build_trace_tables.py
 
 book:
   title: "Socratic-DB"
