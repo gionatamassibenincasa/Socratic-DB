@@ -142,6 +142,88 @@ Il repository o spazio di lavoro dello studente si compone di file standardizzat
 
 ---
 
+## Catalogo, conversione e distribuzione delle tracce {#sec-catalogo-tracce}
+
+Il sistema gestisce ogni traccia come un materiale con una fonte, metadati e derivati distinti. Il PDF acquisito dall'archivio ministeriale o dall'editore è conservato come originale di riferimento; il testo estratto e revisionato è registrato in Markdown; il PDF destinato alla lettura o alla stampa è generato dal Markdown. Originale e derivati non vanno sovrascritti l'uno con l'altro: ogni versione deve poter essere ricondotta alla fonte e alla revisione che l'ha prodotta.
+
+### Metadati del catalogo {#sec-metadati-tracce}
+
+Ogni scheda identifica il materiale e ne descrive provenienza, uso consentito e contenuto didattico. I campi minimi sono:
+
+| Campo | Descrizione |
+| --- | --- |
+| `id` | Identificatore stabile, indipendente dal nome del file. |
+| `titolo` | Titolo breve e riconoscibile della traccia o del materiale. |
+| `anno_esame` e `anno_scolastico` | Anno della prova e anno scolastico a cui si riferisce, se ricavabile dalla fonte. Non inferire l'uno dall'altro senza dichiarare la regola adottata. |
+| `indirizzo` | Indirizzo e articolazione dell'Istituto Tecnico, quando applicabili e indicati nel documento. |
+| `disciplina` | Disciplina o discipline riportate nella prova. |
+| `sessione` | Ordinaria, suppletiva, straordinaria, simulazione o altra tipologia attestata dalla fonte. |
+| `fonte` | Ente o editore, URL di provenienza, data di acquisizione e citazione da riportare nei derivati. |
+| `riassunto` | Sintesi redazionale del dominio e dei requisiti, da confrontare con il testo originale. |
+| `stato_diritti` e `accesso` | Esito della verifica dei diritti e profilo di accesso assegnato al materiale. |
+| `originale`, `markdown` e `pdf_esportato` | Riferimenti ai file corrispondenti, se presenti e autorizzati per il rispettivo uso. |
+| `classificazione_didattica` | Valutazione opzionale di difficoltà modellistica e competenze richieste per le query, con griglia di valutazione, versione e revisore. |
+
+La classificazione didattica non è un fatto estratto automaticamente dalla prova: va motivata e revisionata da un docente. Può descrivere separatamente aspetti quali individuazione delle entità e delle relazioni, cardinalità e vincoli, trasformazione in schema relazionale, normalizzazione, uso di join, aggregazioni, sottoquery e gestione di vincoli temporali. Un campo non ancora valutato resta esplicitamente non classificato; una proposta automatica non diventa metadato approvato senza revisione.
+
+Esempio indicativo di scheda:
+
+```yaml
+versione_catalogo: 1
+id: mim-2018-19-itia-ordinaria-ab42
+titolo: Servizio multimediale per punti di interesse turistici
+anno_esame: 2019
+anno_scolastico: "2018/19"
+criterio_anno_scolastico: Attribuito alla sessione d'esame dell'anno solare 2019.
+indirizzo:
+  istituto: tecnico
+  codice: ITIA
+  articolazione: Informatica
+disciplina:
+  - Informatica
+  - Sistemi e Reti
+sessione: ordinaria
+fonte:
+  ente: Ministero dell'Istruzione
+  url: https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Ordinaria/AB42_ORD19.pdf
+  acquisita_il: "2026-10-22"
+riassunto: Servizio per distribuire contenuti multimediali sui punti di interesse di una città.
+stato_diritti: da_verificare
+accesso: non_distribuibile_fino_a_verifica
+originale: fonti/ministero/AB42_ORD19.pdf
+markdown: tracce/mim-2018-19-itia-ordinaria-ab42.md
+pdf_esportato: null
+classificazione_didattica:
+  stato: da_valutare
+  griglia_di_valutazione: null
+  difficolta_modellistica: null
+  competenze_query: []
+  revisore: null
+```
+
+Gli identificatori, i percorsi e i valori dell'esempio sono illustrativi: il catalogo effettivo deve usare identificatori univoci, percorsi gestiti dal sistema e valori controllati per stato dei diritti e accesso.
+
+### Acquisizione, trascrizione ed esportazione {#sec-pipeline-tracce}
+
+Il flusso di trattamento è il seguente:
+
+1. **Acquisizione**: conservare l'originale senza modificarlo, registrare URL, titolare/editor, data di acquisizione, impronta del file e stato di accesso. Deduplicare per contenuto, mantenendo eventuali fonti e attribuzioni diverse.
+2. **Verifica preliminare**: identificare se il documento è una traccia, una soluzione, una simulazione o materiale editoriale; rilevare avvisi di riservatezza e dati personali. Assegnare l'accesso prima di creare copie destinate alla distribuzione.
+3. **Estrazione**: estrarre il testo dal PDF e produrre Markdown strutturato; ricorrere all'OCR solo quando necessario e registrare il metodo e gli eventuali limiti. Conservare la paginazione o riferimenti di pagina utili a verificare la trascrizione.
+4. **Revisione**: confrontare Markdown e PDF pagina per pagina, correggere errori di estrazione e verificare tabelle, formule, immagini e caratteri. Una persona approva la trascrizione e il riassunto prima che siano usati per generare una consegna.
+5. **Arricchimento didattico**: aggiungere riassunto, difficoltà e competenze come annotazioni separate dal testo della fonte, con autore o revisore e data. Non presentare classificazioni non verificate come dati ufficiali.
+6. **Esportazione**: generare il PDF per gli studenti esclusivamente da una versione Markdown approvata e autorizzata per quel pubblico. Il PDF deve riportare identificativo, attribuzione e versione; non deve includere svolgimenti, note riservate o metadati interni.
+
+### Diritti, riservatezza e profili di distribuzione {#sec-accesso-tracce}
+
+La provenienza ministeriale, la pubblicazione di una traccia d'esame o la sua riproduzione su un quotidiano non sono, da sole, una verifica sufficiente del pubblico dominio o del diritto di redistribuire qualsiasi copia. Per ciascun originale e derivato occorre registrare la base di utilizzo, le condizioni di attribuzione e l'esito della verifica prima della distribuzione. In particolare, una soluzione editoriale è un contenuto distinto dalla traccia ministeriale e non ne eredita automaticamente i diritti o le condizioni d'uso.
+
+Il catalogo distingue almeno materiali **pubblicabili agli studenti**, materiali **ad accesso riservato ai docenti** e materiali **in attesa di verifica**, che non sono distribuibili. Gli svolgimenti riservati, i file con avvisi di copia per docenti e documenti contenenti dati identificativi restano nell'area protetta; non si riproducono tali dati nei metadati o nei PDF esportati. Eventuali copie anonimizzate si creano solo se autorizzate, mantenendo l'originale nell'archivio protetto e documentando la trasformazione.
+
+Gli originali e le trascrizioni riservati non devono trovarsi in directory incluse automaticamente nella build pubblica. In particolare, il rendering Quarto può copiare nel sito gli asset collocati sotto `docs/`: l'output per studenti va quindi generato da un insieme esplicitamente autorizzato, separato dal deposito delle fonti e dei materiali per docenti. Il repository Git, le copie di build e i backup devono rispettare lo stesso profilo di accesso del materiale; una directory esclusa da Git non costituisce, da sola, un archivio controllato né garantisce che gli asset non siano pubblicati da altri passaggi della pipeline.
+
+---
+
 ## Formato delle diagnosi strutturate {#sec-diagnosi-strutturate}
 
 Quando l'orchestratore esegue i validatori deterministici, genera un payload JSON standardizzato che viene fornito al modello linguistico tutor:
