@@ -39,8 +39,11 @@ L'intera documentazione tecnica, pedagogica e sperimentale è presente nella *di
 | **04. Architettura** | [`docs/04_architettura_sistema.md`](docs/04_architettura_sistema.md) | Orchestratore Python (FSM), sandbox SQLite isolata in memoria, requisiti hardware GPU, golden set di collaudo, system prompt e GitLab CI/ForgeJo. |
 | **05. Formati & Schemi** | [`docs/05_formati_e_schemi.md`](docs/05_formati_e_schemi.md) | Specifiche dei file YAML per validare schemi concettuali e relazionali, contratti di consegna, formato diagnosi JSON e report compatto di processo. |
 | **06. Normativa** | [`docs/06_normativa_e_sicurezza.md`](docs/06_normativa_e_sicurezza.md) | Conformità GDPR (minori, pseudonimizzazione), EU AI Act (esclusione dai sistemi di profiling ad alto rischio), isolamento di rete e mitigazione injection. |
-| **07. Sperimentazione**| [`docs/07_sperimentazione.md`](docs/07_sperimentazione.md) | Disegno di ricerca empirica pre/post-test, studio pilota in classe, prova di trasferimento a distanza, metriche di processo e criteri di successo. |
-| **Bibliografia** | [`docs/riferimenti.bib`](docs/riferimenti.bib) | Fonti accademiche e normative in formato BibTeX (Codd, Chen, Mitrovic, Bloom, Vygotskij, Becker, AI Act, GDPR). |
+| **07. Sperimentazione**| [`docs/07_sperimentazione.md`](docs/07_sperimentazione.md) | Progetto di ricerca empirica pre/post-test, fasi pilota progressive (cloud Classroom/Gemini e locale Ollama VLM aperti), prova di trasferimento a distanza, metriche di processo e criteri di successo. |
+| **Bibliografia** | [`docs/riferimenti.bib`](docs/riferimenti.bib) | Fonti bibliografiche e normative in formato BibTeX (Codd, Chen, Mitrovic, Bloom, Vygotskij, Becker, AI Act, GDPR). |
+| **Gemini Gem** | [`gemini-gem/GEM_SYSTEM_INSTRUCTIONS.md`](gemini-gem/GEM_SYSTEM_INSTRUCTIONS.md) | Istruzioni di sistema pronte all'uso per configurare la Gem di Gemini ("DB-Socrates") in Google Workspace for Education / Classroom. |
+| **Agentic Skill** | [`skills/socratic-db/SKILL.md`](skills/socratic-db/SKILL.md) | Definizione della Skill socratica standard (`SKILL.md`) per assistenti agentici e CLI di supporto alla modellazione concettuale e SQL. |
+| **Ollama Modelfile** | [`ollama/Modelfile`](ollama/Modelfile) | Modelfile per l'esecuzione locale on-premise con Ollama e modelli aperti VLM (Qwen2.5-VL, Qwen3, Phi-3.5-vision, LLaVA 1.6, Llama 3.2 Vision). |
 
 ---
 
@@ -52,16 +55,16 @@ L'apprendimento è scandito da un ciclo iterativo di sottomissione, diagnosi det
 [Requisiti della Traccia]
         │
         ▼
-   [Consegna C1] ──► 1. Analisi requisiti & 2. Glossario non circolare
+   [Consegna C1] ──► 1. Analisi dei requisiti & 2. Glossario di progetto
         │
         ▼
-   [Consegna C2] ──► 3. Modello concettuale ER & 4. Classificazione vincoli di dominio
+   [Consegna C2] ──► 3. Modello concettuale E/R & 4. Classificazione dei vincoli di dominio
         │
         ▼
    [Consegna C3] ──► 5. Modello relazionale, chiavi, FK e normalizzazione (1NF, 2NF, 3NF)
         │
         ▼
-   [Consegna C4] ──► 6. DDL SQLite & 7. Popolamento di test & 8. Query SQL verificate
+   [Consegna C4] ──► 6. DDL SQLite & 7. Popolamento di test & 8. Query SQL richieste dalla traccia
         │
         ▼
    [Consegna C5] ──► 9. Prova individuale di trasferimento (In aula, traccia inedita, SENZA tutor)
