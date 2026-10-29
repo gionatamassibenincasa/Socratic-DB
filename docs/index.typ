@@ -434,7 +434,7 @@
   title: [Socratic-DB],
   subtitle: [Tutor socratico per la progettazione di basi di dati relazionali],
   author: "Gionata Massi",
-  date: "2026-10-23",
+  date: "2026-10-29",
   lang: "it",
   main-color: brand-color.at("primary", default: blue),
   logo: {
@@ -1449,13 +1449,13 @@ Prima dell'inizio delle attività devono essere predisposti: 1. Informativa sul 
 
 = Protocollo di sperimentazione empirica
 <sec-protocollo-sperimentazione>
-Prima di estendere l'adozione del sistema a più istituti o corsi, il progetto prevede una sperimentazione controllata volta a quantificare l'efficacia didattica, l'usabilità e la sostenibilità operativa.
+Prima di estendere l'adozione del sistema a più istituti o corsi, il progetto prevede una sperimentazione controllata volta a quantificare l'efficacia didattica, l'usabilità e la sostenibilità operativa. In particolare, il percorso include una #strong[fase pilota preliminare a basso attrito tecnologico ("zero-infrastructure")] focalizzata sulla sola gestione maieutica del dialogo da parte del modello linguistico, propedeutica alla sperimentazione dell'architettura complessa completa.
 
 #horizontalrule
 
 == Fasi e disegno della ricerca
 <sec-disegno-ricerca>
-La sperimentazione si articola in sette passaggi metodologici:
+La sperimentazione complessiva si articola in sette passaggi metodologici:
 
 + #strong[Definizione degli obiettivi formativi mirati:] Focalizzazione su un sottoinsieme specifico di competenze modellistiche e interrogative (da O2 a O7: modellazione ER, traduzione in schema relazionale, individuazione di vincoli non banali, calcolo delle forme normali, scrittura di query SQL con aggregazioni e join).
 
@@ -1474,9 +1474,11 @@ La sperimentazione si articola in sette passaggi metodologici:
   - Calcolo del tasso di mancata fuga della soluzione (obiettivo: 100%);
   - Verifica di non-contraddizione rispetto alle diagnosi deterministiche.
 
-+ #strong[Studio pilota:]
++ #strong[Fasi pilota progressive della sperimentazione:]
 
-  - Coinvolgimento di una o due classi (5--20 studenti per classe) per un ciclo di 6--8 lezioni curricolari in laboratorio.
+  - #strong[Pilota 1 (Cloud Zero-Infrastructure / Google Classroom e Gemini, #ref(<sec-pilota-classroom>, supplement: [Sezione])):] Sperimentazione del solo tutor LLM in un contesto scolastico reale basato su Google Classroom, utilizzando le Gem di Gemini e le Skill agentiche (#NormalTok("SKILL.md");) per testare la tenuta del dialogo socratico, la qualità maieutica e l'usabilità multimodale a formati aperti, senza il carico di allestimento dei server Git e SQLite.
+  - #strong[Pilota 2 (On-Premise / Modelfile Ollama per VLM aperti, #ref(<sec-pilota-ollama>, supplement: [Sezione])):] Trasferimento delle istruzioni socratiche della Gem in un #NormalTok("Modelfile"); per Ollama ed esecuzione locale su workstation scolastica. Valutazione comparativa di modelli vision-language aperti (Qwen2.5-VL 7B, Qwen3-8B, Phi-3.5-vision, LLaVA v1.6, Llama 3.2 3B Vision) per testare l'analisi di immagini/diagrammi, la latenza, il consumo di VRAM e la tenuta maieutica in assenza di connettività cloud.
+  - #strong[Pilota 3 (Integrazione tecnologica mista completa, #ref(<sec-piattaforma-consegna>, supplement: [Sezione])):] Coinvolgimento di una o due classi (5--20 studenti per classe) per un ciclo di 6--8 lezioni curricolari in laboratorio con lo stack integrato neuro-simbolico on-premise (GitLab/Forgejo, runner isolati, sandbox SQLite e validatori deterministici rigidi).
   - Disegno di ricerca prevalentemente #emph[intra-soggetto] (confronto pre/post sullo stesso gruppo di studenti).
   - Rilevazione qualitativa continua: osservazione sul campo dei comportamenti degli studenti, registrazione dei blocchi tecnici o didattici, note del docente.
   - Affinamento iterativo dei prompt, dei pesi di quantizzazione e delle regole di validazione prima della sperimentazione su scala più ampia.
@@ -1486,8 +1488,8 @@ La sperimentazione si articola in sette passaggi metodologici:
 + #strong[Analisi multidimensionale dei risultati:] Oltre ai punteggi grezzi di correttezza, l'analisi considera:
 
   - #emph[Grado di autonomia]: Evoluzione della richiesta di livelli di aiuto (tendenza a diminuire il ricorso a L3/L4);
-  - #emph[Qualità del ragionamento]: Pertinenza, rigore e ricchezza delle motivazioni scritte nei campi #NormalTok("motivazione");\;
-  - #emph[Capacità di correzione attiva]: Analisi della cronologia dei commit Git tra il primo tentativo e la consegna validata;
+  - #emph[Qualità del ragionamento]: Pertinenza, rigore e ricchezza delle motivazioni fornite nei vari passaggi;
+  - #emph[Capacità di correzione attiva]: Analisi della cronologia delle revisioni e dei ripensamenti tra il primo tentativo e l'elaborato approvato;
   - #emph[Esperienza percepita]: Questionario di fine percorso sull'utilità percepita, senso di autoefficacia e fiducia nel tutor.
 
 + #strong[Confronto controllato (Fase estesa successiva):] Qualora siano disponibili classi parallele con il medesimo programma curricolare, confronto tra:
@@ -1497,19 +1499,238 @@ La sperimentazione si articola in sette passaggi metodologici:
 
 #horizontalrule
 
+== Fasi pilota "Zero-Infrastructure": Sperimentazione del dialogo socratico con Google Classroom e Gemini
+<sec-pilota-classroom>
+=== Contesto didattico e motivazione metodologica
+<sec-pilota-classroom-motivo>
+L'allestimento dell'architettura completa descritta in #ref(<sec-architettura-sistema>, supplement: [Capitolo]) (server Linux con GPU da 32 GB, istanza on-premise GitLab/Forgejo, container Docker con SQLite in sandbox e validatori YAML/Pydantic) comporta un rilevante investimento infrastrutturale e un notevole carico di configurazione DevOps per il docente. Se introdotto direttamente nella fase iniziale della ricerca, questo carico tecnologico rischia di introdurre variabili spurie nell'osservazione (es. blocchi dovuti a errori di sintassi YAML, disallineamenti di Git o problemi di rete locale), oscurando l'oggetto primario di indagine: #strong[la reale efficacia maieutica del modello linguistico nella conduzione del dialogo socratico per le basi di dati].
+
+Per isolare e valutare rigorosamente la componente conversazionale e pedagogica, il progetto introduce una #strong[fase pilota "zero-infrastructure"] ambientata nello scenario d'uso ordinario di una scuola secondaria di secondo grado italiana dotata di #strong[Google Workspace for Education e Google Classroom].
+
+In tale ambiente:
+
+- Non è richiesta alcuna installazione locale, server dedicato o configurazione di repository Git;
+- La scuola sfrutta gli strumenti di IA generativa già integrati e regolamentati nell'infrastruttura d'istituto (Gemini Enterprise o Education);
+- La didattica beneficia della disponibilità di #strong[Gem personalizzate (Gemini Gems)] e della generazione e utilizzo di #strong[Skill agentiche standard (#NormalTok("SKILL.md");)]\;
+- Gli studenti possono dialogare con il tutor utilizzando qualsiasi dispositivo (Chromebook, PC di laboratorio, tablet o smartphone) e qualsiasi modalità espressiva, inclusa quella grafica e manoscritta.
+
+=== Duplice implementazione: Gem di Gemini e Skill agentica
+<sec-duplice-implementazione>
+Per consentire la massima flessibilità sia in contesti no-code che in ambienti di programmazione assistita, il tutor socratico è ingegnerizzato e rilasciato in due formati complementari:
+
++ #strong[Gem di Google Gemini (#NormalTok("DB-Socrates Gem");):] Configurata direttamente dal docente nella console di Gemini Workspace attraverso un set di istruzioni di sistema (#emph[system prompt]) strutturato. La Gem è distribuibile alla classe tramite link o condivisione interna in Google Classroom. Gli studenti vi accedono con il proprio account istituzionale, interagendo in una chat multimodale intuitiva. Le specifiche e il prompt completo per la creazione della Gem sono formalizzati in #link("file:///home/massi/Documenti/GitHub/socratic-db/gemini-gem/GEM_SYSTEM_INSTRUCTIONS.md")[GEM\_SYSTEM\_INSTRUCTIONS.md].
+
++ #strong[Skill agentica standard (#NormalTok("SKILL.md");):] Definita secondo la specifica standard per assistenti e agenti di sviluppo (Google Antigravity, Gemini CLI, estensioni per Classroom). La skill racchiude i metadati YAML, i trigger operativi, le regole maieutiche L0--L4, i criteri di qualità e le euristiche di scaffolding. Il file sorgente della skill è disponibile in #link("file:///home/massi/Documenti/GitHub/socratic-db/skills/socratic-db/SKILL.md")[SKILL.md].
+
+=== Ingestione del compito e isolamento della componente DB
+<sec-ingestione-compito>
+Il flusso di lavoro si innesca quando lo studente (o il docente per conto della classe) carica il PDF del compito. Tipicamente si tratta di:
+
+- Una traccia di #strong[Seconda Prova scritta dell'Esame di Stato] per gli Istituti Tecnici (indirizzo Informatica e Telecomunicazioni, articolazione Informatica);
+- Una simulazione ministeriale o una prova d'esame degli anni precedenti (cfr. catalogo in #ref(<sec-catalogo-tracce>, supplement: [Sezione]));
+- Un compito in classe o studio di caso predisposto dal docente di indirizzo.
+
+Le tracce d'esame ministeriali contengono frequentemente requisiti compositi (ad esempio: architettura di rete e apparati Cisco, progettazione della base di dati, realizzazione di pagine web front-end o policy di sicurezza). L'assistente socratico:
+
++ #strong[Analizza e isola il dominio dati:] legge il PDF tramite le capacità multimodali native del modello e separa la parte relativa alla persistenza e alle basi di dati (generalmente identificata come #emph[Parte Prima] o #emph[Tema 1]) dagli aspetti accessori;
++ #strong[Definisce il perimetro:] riassume in poche frasi l'universo del discorso e gli obiettivi informativi del sistema;
++ #strong[Presenta il patto formativo:] esplicita allo studente la sequenza rigorosa delle nove tappe maieutiche che dovranno essere percorse prima di considerare concluso il lavoro.
+
+=== Il percorso maieutico in nove passi e la mappatura con il Protocollo Didattico
+<sec-mappatura-fasi-pilota>
+Il tutor conduce l'interazione richiedendo allo studente di produrre, tassativamente nell'ordine metodologico, nove risultati intermedi. Questa sequenza costituisce una #strong[mappatura biunivoca e fedele delle nove fasi e delle cinque consegne formali descritte nel Protocollo Didattico (#ref(<sec-percorso-consegne>, supplement: [Sezione]))]:
+
++ #strong[Analisi nomi-verbi (Fasi 1--2 / Consegna C1):] Lo studente estrae dal testo del compito isolato i sostantivi e le forme verbali rilevanti, organizzandoli in una tabella. Ogni sostantivo è categorizzato (#emph[Candidata Entità], #emph[Attributo], #emph[Scartato/Fuori ambito]) con la rispettiva giustificazione semantica. Ogni verbo è categorizzato (#emph[Candidata Associazione], #emph[Operazione di sistema], #emph[Scartato]) specificando i soggetti coinvolti. Il tutor interviene maieuticamente per sfatare l'illusione che "ogni nome sia un'entità e ogni verbo una relazione", guidando lo studente a motivare i confini del modello.
+
++ #strong[Glossario di progetto (Fase 2 / Consegna C1):] Lo studente fornisce le definizioni rigorose di ciascun termine e concetto candidato selezionato. Il tutor verifica che le definizioni non siano circolari o tautologiche (es. #emph["La Prenotazione è l'atto di prenotare"]), accerta la disambiguazione di omonimi e sinonimi presenti nel testo e fissa il lessico controllato del progetto.
+
++ #strong[Modello concettuale E/R (Fase 3 / Consegna C2):] Lo studente progetta lo schema Entità-Relazione definendo entità, attributi, identificatori univoci (chiavi concettuali), associazioni e #strong[cardinalità minime e massime] (#NormalTok("0..1");, #NormalTok("1..1");, #NormalTok("0..N");, #NormalTok("1..N");). Il tutor verifica che ogni entità possieda un identificatore, che ogni costrutto risponda a un requisito della traccia e sfida lo studente tramite controesempi concreti sulle cardinalità dubbie o invertite.
+
++ #strong[Vincoli del dominio (Fase 4 / Consegna C2):] Lo studente individua e classifica le regole aziendali e i vincoli che non possono essere rappresentati puramente dalla topologia del grafo ER: vincoli su singoli attributi, vincoli inter-entità e vincoli temporali (intervalli, sovrapposizioni e concorrenza). Per ciascun vincolo indica il meccanismo di controllo preventivato (vincolo CHECK/UNIQUE, trigger o livello applicativo).
+
++ #strong[Modello relazionale e meccanismo di controllo dei vincoli (Fase 5 / Consegna C3):] Lo studente applica le regole formali di traduzione concettuale-logica: derivazione delle tabelle, individuazione delle chiavi primarie, traduzione delle associazioni 1:N e N:M (tramite tabelle di giunzione), gestione delle gerarchie e delle relazioni 1:1, definizione delle chiavi esterne (FK) e delle politiche di integrità referenziale (#NormalTok("ON DELETE");, #NormalTok("ON UPDATE");). Lo studente formalizza le dipendenze funzionali, argomenta il raggiungimento della Terza Forma Normale (#strong[3NF]) e spiega in quale tabella o vincolo relazionale viene implementato ciascuno dei vincoli del punto 4.
+
++ #strong[DDL SQL per la creazione dello schema (Fase 6 / Consegna C4):] Lo studente scrive lo script SQL DDL (#NormalTok("CREATE TABLE");) con tipi di dati corretti, vincoli #NormalTok("NOT NULL");, #NormalTok("UNIQUE");, #NormalTok("CHECK"); e chiavi esterne attive. #emph[Scaffolding controllato:] se lo studente dimostra piena padronanza concettuale ma rimane bloccato su ostacoli sintattici dopo ripetute iterazioni maieutiche (3--4 tentativi infruttuosi), il tutor fornisce lo schema DDL corretto. Lo studente è tuttavia obbligato ad analizzarlo riga per riga, commentando i vincoli e confrontandolo criticamente con il proprio tentativo iniziale.
+
++ #strong[DML SQL per l'inserimento dei dati (Fase 7 / Consegna C4):] Lo studente popola la base di dati tramite istruzioni #NormalTok("INSERT INTO"); significative e non banali, comprensive di casi ordinari, casi limite, valori nulli in colonne opzionali, tuple genitore prive di figli (per verificare le #NormalTok("LEFT JOIN");) e casi invalidi destinati a essere respinti dai vincoli di integrità. #emph[Scorciatoia su richiesta:] se lo studente richiede assistenza o per evitare un eccessivo affaticamento esecutivo, il tutor propone uno script multi-insert sintetico e plausibile (privo di dati personali reali), coerente con lo schema dell'allievo, chiedendogli di convalidarlo e integrarlo con un caso limite personale.
+
++ #strong[QL SQL per le query richieste dal compito (Fase 8 / Consegna C4):] Lo studente formula le query #NormalTok("SELECT"); necessarie a rispondere a tutte le interrogazioni previste dal testo d'esame. Motiva la scelta dei tipi di join (#NormalTok("INNER JOIN");, #NormalTok("LEFT JOIN");), delle condizioni di filtro (#NormalTok("WHERE");), dei raggruppamenti (#NormalTok("GROUP BY");, #NormalTok("HAVING");) e degli ordinamenti (#NormalTok("ORDER BY");), commentando criticamente il risultato logico ottenuto sui dati inseriti al punto 7.
+
++ #strong[Proposta di un problema simile ma più complesso (Fase 9 / Consegna C5 - Prova di Trasferimento):] Al termine del percorso, il tutor non chiude semplicemente la sessione ma formula una traccia didattica di approfondimento: un problema isomorfo o una variante del caso affrontato che introduce un vincolo aggiuntivo o una complicazione di dominio (es. gestione temporale dei prezzi storici, cancellazione logica con trigger di audit, gestione concorrente di quote di capienza). Lo studente è invitato ad affrontarlo in piena autonomia, permettendo di valutare l'effettivo trasferimento delle competenze senza supporto continuo.
+
+La tabella seguente riassume la corrispondenza biunivoca tra le tappe del pilota in Classroom e il protocollo metodologico del progetto:
+
+#table(
+  columns: (20%, 20%, 20%, 20%, 20%),
+  align: (left,left,left,left,left,),
+  table.header([Tappa Pilota Classroom], [Fase Protocollo Didattico], [Consegna Aggregata], [Artefatto Prodotto dallo Studente], [Controllo e Guida Socratica del Tutor],),
+  table.hline(),
+  [#strong[\0. Traccia PDF]], [Requisiti Iniziali], [Setup], [Upload PDF esame/compito], [Isolamento mirato della porzione Basi di Dati e perimetrazione],
+  [#strong[\1. Nomi-Verbi]], [Fase 1--2], [C1. Requisiti e glossario], [Tabella Sostantivi / Verbi categorizzati e motivati], [Domande sulla natura di attributo vs entità; motivazione degli scarti],
+  [#strong[\2. Glossario]], [Fase 2], [C1. Requisiti e glossario], [Glossario definizioni e chiarimento sinonimi/omonimi], [Rilevazione tautologie e definizioni circolari; disambiguazione],
+  [#strong[\3. Modello E/R]], [Fase 3], [C2. Concettuale], [Diagramma ER (libero: disegno a mano, Mermaid, draw.io, YAML)], [Presenza identificatori; controesempi pratici su cardinalità invertite],
+  [#strong[\4. Vincoli Dominio]], [Fase 4], [C2. Concettuale], [Tabella vincoli non strutturali e meccanismi previsti], [Elicitazione vincoli impliciti, temporali e di sovrapposizione],
+  [#strong[\5. Modello Relazionale]], [Fase 5], [C3. Relazionale], [Schemi di relazione, PK/FK, dipendenze funzionali, 3NF], [Verifica assenza FK orfane, superchiavi minime e normalizzazione 3NF],
+  [#strong[\6. DDL SQL]], [Fase 6], [C4. Implementazione], [Script SQL #NormalTok("CREATE TABLE"); con tipi e vincoli], [Feedback sintattico/semantico; scaffolding DDL se bloccato (con analisi)],
+  [#strong[\7. DML SQL]], [Fase 7], [C4. Implementazione], [Script #NormalTok("INSERT INTO"); (casi ordinari, limite, genitori senza figli)], [Verifica copertura; generazione multi-insert su richiesta],
+  [#strong[\8. QL SQL]], [Fase 8], [C4. Implementazione], [Query #NormalTok("SELECT"); commentate e discusse], [Verifica join, filtri, aggregazioni ed esame maieutico dei risultati],
+  [#strong[\9. Problema Complesso]], [Fase 9], [C5. Trasferimento], [Risoluzione autonoma di un problema isomorfo incrementale], [Verifica del trasferimento e della non-dipendenza dall'assistente],
+)
+=== Libertà di formato ed espressività multimodale
+<sec-liberta-formati>
+Uno dei principali limiti operativi dell'infrastruttura automatizzata rigorosa risiede nell'obbligo, per gli studenti delle scuole superiori, di codificare gli schemi concettuali e logici in file YAML rigorosamente conformi a uno schema JSON (cfr. #ref(<sec-formati-contratti>, supplement: [Capitolo])). Nella pratica scolastica, tale vincolo costringe il docente a spendere ore di lezione sull'insegnamento della sintassi YAML e sulla risoluzione di errori di indentazione, distogliendo l'attenzione dagli obiettivi concettuali della modellazione dei dati.
+
+Nella fase pilota con Google Classroom e Gemini, la scelta pedagogica è improntata alla #strong[totale libertà di formato, inclusa la piena valorizzazione della dimensione grafica e multimodale]:
+
+- #strong[Diagrammi disegnati a mano libera:] Lo studente può tracciare lo schema Entità-Relazione su un comune foglio di carta (con rettangoli per le entità, rombi per le associazioni, ovali per gli attributi e cardinalità min..max scritte a penna), fotografarlo con lo smartphone o la webcam del computer e allegare l'immagine alla chat. La visione multimodale della LLM analizza l'immagine, riconosce la struttura del grafo e le annotazioni manoscritte e conduce la discussione maieutica direttamente a partire dal disegno dello studente.
+- #strong[Diagrammi digitali visuali:] Lo studente può utilizzare qualsiasi strumento di disegno grafico (draw.io, Canva, Lucidchart, Excalidraw, DIA) ed esportare l'elaborato in formato immagine (PNG, JPEG) o PDF.
+- #strong[Notazioni testuali e diagrammi as-code:] Gli studenti più orientati al codice possono sottoporre diagrammi Mermaid, PlantUML o tabelle Markdown.
+- #strong[Rappresentazioni testuali semplificate:] Per il modello relazionale, lo studente può utilizzare la notazione testuale classica della letteratura scolastica (es. #NormalTok("Cliente(ID_Cliente, Cognome, Nome, Città*)"); con asterischi per le chiavi esterne e sottolineature per le chiavi primarie) oppure tabelle a colonne.
+
+La LLM non sanziona né forza alcuna specifica sintassi di rappresentazione grafica o testuale: si concentra unicamente sulla comprensione semantica del modello e sulla qualità del ragionamento dello studente.
+
+=== I cinque criteri di qualità della guida socratica
+<sec-criteri-qualita-socratica>
+Nel corso di tutte le 9 tappe, la Gem e la Skill orientano il dialogo maieutico affinché l'elaborato finale soddisfi costantemente cinque dimensioni qualitative fondamentali:
+
++ #strong[Corretto (Correttezza formale, logica e sintattica):] Lo schema deve rispettare rigorosamente le regole dell'algebra relazionale e della sintassi SQL: identificatori presenti per ciascuna entità, assenza di relazioni non collegate, coerenza dei tipi di dato tra chiavi primarie e chiavi esterne, assenza di violazioni di integrità referenziale, rispetto della Terza Forma Normale (3NF), e correttezza sintattica del linguaggio specifico di dominio (E/R, DDL, DML, QL).
+
++ #strong[Completo (Copertura esaustiva delle specifiche):] Ogni requisito informativo, entità, vincolo aziendale (esplicito o implicito) e interrogazione presente nel testo del compito o dell'Esame di Stato deve trovare puntuale riscontro nello schema concettuale, nello schema relazionale e nelle query di interrogazione. Nessun requisito viene omesso o trascurato.
+
++ #strong[Minimale (Assenza di sovrastrutture e ridondanze):] Il modello deve evitare l'eccesso di complessità (#emph[over-engineering]). Non devono comparire entità fittizie non giustificate dai requisiti, attributi duplicati o calcolabili, tabelle di giunzione superflue per relazioni 1:N; nelle query SQL devono essere coinvolti esclusivamente gli attributi e le tabelle strettamente necessari (rifiuto del costrutto #NormalTok("SELECT *"); e di join ridondanti).
+
++ #strong[Pertinente (Aderenza semantica al dominio applicativo):] I nomi attribuiti alle entità, agli attributi e alle relazioni, nonché la classificazione dei vincoli, devono rispecchiare con precisione il lessico, i processi aziendali e la realtà operativa descritta nella traccia, evitando generalizzazioni astratte e terminologie non appropriate.
+
++ #strong[Efficiente (Ottimizzazione strutturale e computazionale):] Nello schema relazionale e nelle query SQL devono essere privilegiate scelte che minimizzano anomalie e costi computazionali: selezione mirata dei tipi fisici di dato, indicizzazione coerente sulle chiavi esterne e sui campi di ricerca frequente, normalizzazione fino a 3NF senza frammentazione ingiustificata, e scrittura di query ottimizzate (scelta corretta tra #NormalTok("JOIN"); e sottoquery, filtri selettivi anticipati nella clausola #NormalTok("WHERE");, eliminazione di prodotti cartesiani involontari).
+
+==== Declinazione operativa della qualità sui 9 deliverable
+<sec-matrice-qualita-deliverable>
+Per consentire al tutor un'azione maieutica puntuale, la griglia seguente specifica come i cinque criteri si applicano a ciascuno dei deliverable intermedi:
+
+#table(
+  columns: (16.67%, 16.67%, 16.67%, 16.67%, 16.67%, 16.67%),
+  align: (left,left,left,left,left,left,),
+  table.header([Deliverable], [Corretto], [Completo], [Minimale], [Pertinente], [Efficiente],),
+  table.hline(),
+  [#strong[D1. Nomi-Verbi]], [Rigore grammaticale e logico (sostantivo $arrow.r$ entità/attributo/scartato; verbo $arrow.r$ associazione/operazione)], [Estrazione di tutti i termini chiave dal testo isolato], [Scarto motivato di vocaboli fuori ambito o irrilevanti], [Fuoco esclusivo sui requisiti informativi del dominio], [Organizzazione tabellare concisa con motivazioni chiare],
+  [#strong[D2. Glossario]], [Definizioni non circolari, non tautologiche, ontologicamente fondate], [Definizione di tutti i concetti; chiarimento sinonimi e omonimi], [Definizioni sintetiche e circoscritte al profilo dati], [Ancoraggio al contesto aziendale della prova], [Consolidamento di un lessico controllato senza ambiguità],
+  [#strong[D3. Modello E/R]], [Identificatori presenti; cardinalità min/max formalmente valide; assenza di grafi orfani], [Copertura di tutte le entità e relazioni richieste], [Assenza di entità fittizie o attributi calcolabili non motivati], [Rispetto fedele delle dinamiche del problema], [Topologia concettuale pulita e pronta alla traduzione logica],
+  [#strong[D4. Vincoli]], [Formulazione non ambigua; corretto meccanismo (CHECK, trigger, app)], [Censimento vincoli intra/inter-entità e temporali/concorrenza], [Nessuna duplicazione di vincoli già garantiti dall'E/R], [Vincoli derivanti dalle reali regole aziendali], [Preferenza per vincoli dichiarativi DDL rispetto a trigger pesanti],
+  [#strong[D5. Relazionale]], [Traduzione rigorosa (PK, FK, N:M risolte, 1:1 e gerarchie); 3NF verificata], [Tutte le tabelle derivate; mappatura meccanismi vincoli D4], [Nessuna tabella ponte per 1:N; assenza ridondanze transitive], [Rispetto fedele della semantica concettuale di D3], [Normalizzazione 3NF che elimina anomalie di modifica/cancellazione],
+  [#strong[D6. DDL SQL]], [Sintassi SQL valida; tipi corretti; PK, FK e vincoli NOT NULL/CHECK/UNIQUE attivi], [Script eseguibile che genera l'intero schema], [Codice pulito, privo di colonne superflue o clausole duplicate], [Nomenclatura chiara, uniforme e professionale], [Tipi dimensionalmente adeguati; indici su FK e campi di ricerca],
+  [#strong[D7. DML SQL]], [Istruzioni INSERT valide; rispetto dell'ordine topologico delle FK], [Casi ordinari, limite, nulli, genitori senza figli e test negativo], [Dataset compatto, privo di popolamenti ridondanti fini a se stessi], [Dati realistici e coerenti; assenza di dati personali reali], [Istruzioni multi-insert compatte e ordinate],
+  [#strong[D8. QL SQL]], [Sintassi ineccepibile; join corrette (INNER vs LEFT); filtri WHERE/HAVING esatti], [Risoluzione puntuale di tutti i quesiti informativi della traccia], [Solo colonne necessarie (no #NormalTok("SELECT *");); solo tabelle indispensabili], [Restituisce esattamente i dati richiesti, con ordinamento coerente], [Filtri anticipati in WHERE; join su chiavi indicizzate; no subquery lente],
+  [#strong[D9. Trasferimento]], [Formulazione chiara, pedagogicamente solida e verificabile], [Traccia completa di contesto, requisiti, vincoli e query], [Incremento mirato e circoscritto di complessità (es. audit, quote)], [Problema isomorfo al dominio di partenza], [Verifica l'effettiva autonomia dello studente senza supporto continuo],
+)
+=== Gestione dello scaffolding e delle scorciatoie controllate
+<sec-scaffolding-scorciatoie>
+Nel rispetto dei principi pedagogici espressi in #ref(<sec-specifica-pedagogica>, supplement: [Capitolo]) e delle indicazioni di sostenibilità di #ref(<sec-protocollo-didattico>, supplement: [Capitolo]), il pilota integra due meccanismi controllati di supporto:
+
+- #strong[Scaffolding dello Schema DDL (Tappa 6):] L'obiettivo formativo prioritario nella scuola secondaria risiede nella progettazione logica e nella comprensione dell'integrità referenziale. Se uno studente, pur avendo compreso il modello relazionale, sperimenta frustrazione o stallo bloccante nella traduzione in dialetto SQLite dopo 3--4 iterazioni maieutiche, il tutor è autorizzato a fornire lo schema DDL corretto. Tuttavia, per scongiurare l'accettazione passiva, il tutor subordina il proseguimento alla #strong[spiegazione critica da parte dello studente]: l'allievo deve illustrare ogni tabella, commentare il ruolo delle chiavi esterne e dei vincoli #NormalTok("CHECK");, ed evidenziare esplicitamente quali differenze sussistono rispetto al proprio tentativo iniziale.
+- #strong[Scorciatoia DML per la generazione dei dati (Tappa 7):] La digitazione manuale di decine di istruzioni #NormalTok("INSERT INTO"); rappresenta un compito ad alto costo temporale e a basso valore formativo concettuale. Quando lo studente lo richiede, il tutor propone uno script SQL multi-insert sintetico e plausibile, coerente con lo schema dello studente e rigorosamente privo di dati personali reali. Lo studente ha il compito di verificare che i dati rispettino i vincoli del DDL, integrando il dataset con almeno un caso limite e un caso invalido di test.
+
+=== Protocollo di osservazione e metriche specifiche del pilota
+<sec-metriche-pilota>
+Durante lo svolgimento del pilota "zero-infrastructure" in Google Classroom, i dati per la ricerca vengono raccolti attraverso modalità trasparenti e non invasive:
+
+- #strong[Esportazione delle sessioni di dialogo:] Gli studenti scaricano la trascrizione integrale del dialogo con la Gem o con l'assistente (in formato testo o PDF) e la consegnano come allegato al compito in Google Classroom;
+- #strong[Analisi qualitativa della traiettoria maieutica:] I dialoghi vengono analizzati per calcolare:
+  - Il livello massimo di aiuto raggiunto per ciascuna delle 9 tappe (scala L0--L4);
+  - Il tasso di fedeltà socratica del tutor (assenza di risposte preconfezionate o fughe indebite della soluzione);
+  - La frequenza di ricorso allo scaffolding DDL (Tappa 6) e alla generazione assistita dei dati (Tappa 7);
+  - La capacità dello studente di recepire i controesempi e correggere autonomamente gli elaborati;
+- #strong[Valutazione in cieco degli elaborati finali:] Docenti indipendenti valutano gli elaborati di Tappa 8 (query) e Tappa 9 (problema di trasferimento) con rubrica analitica su scala 1--4 rispetto ai criteri di correttezza, completezza, minimalità, pertinenza ed efficienza;
+- #strong[Questionari di gradimento e carico di lavoro:] Rilevazione dell'esperienza d'uso degli studenti (usabilità percepita, senso di autonomia) e del carico orario effettivo del docente (tempo impiegato per predisporre il compito in Classroom e tempo per la revisione delle trascrizioni).
+
+I risultati raccolti in questa fase pilota costituiscono la base empirica per validare i prompt e tarare i pesi dei modelli linguistici prima del collaudo del prototipo completo con integrazione Git e SQLite isolato.
+
+#horizontalrule
+
+== Secondo pilota On-Premise: Sperimentazione locale con Ollama e VLM aperti
+<sec-pilota-ollama>
+=== Razionale della sperimentazione locale e sovranità del dato
+<sec-pilota-ollama-motivo>
+Dopo aver validato la tenuta del dialogo socratico e l'accoglienza pedagogica nello scenario cloud "zero-infrastructure" di Google Classroom (#ref(<sec-pilota-classroom>, supplement: [Sezione])), la seconda fase pilota sposta l'indagine sull'#strong[infrastruttura locale d'istituto (#emph[on-premise])], posizionandosi come passaggio intermedio prima della realizzazione dell'infrastruttura mista completa dotata di validatori deterministici rigidi e sandbox SQLite (#ref(<sec-architettura-sistema>, supplement: [Capitolo])).
+
+L'obiettivo di questo secondo pilota è duplice: 1. #strong[Verificare la fattibilità operativa ed economica dell'IA locale nella scuola]: affrancarsi dalla dipendenza da API commerciali cloud, eliminando i costi ricorrenti di inferenza e garantendo la totale sovranità sui dati scolastici (GDPR/DPIA) mediante l'esecuzione autonoma su una singola workstation o server di laboratorio d'istituto dotato di GPU dedicata; 2. #strong[Valutare empiricamente la capacità visiva e maieutica dei modelli aperti (#emph[open-weights])]: verificare se modelli multimodali compatti (3B--8B) siano in grado di interpretare diagrammi concettuali ed E/R (inclusi disegni a mano libera su carta fotografati dagli studenti) e di mantenere la disciplina socratica senza cedere risposte precotte o allucinare sulla sintassi SQL.
+
+A tale scopo, le istruzioni di sistema maieutiche formalizzate per la Gem di Google e per la skill agentica vengono trasferite in un #strong[#NormalTok("Modelfile"); standard per Ollama], consentendo l'orchestrazione e il confronto trasparente tra diversi modelli linguistici e multimodali.
+
+=== Modelli linguistici e multimodali aperti di test
+<sec-modelli-vlm-test>
+La sperimentazione locale mette a confronto cinque modelli aperti dotati di capacità multimodali (#emph[Vision-Language Models] - VLM) o ad alte prestazioni di reasoning, compatibili con il runtime Ollama e quantizzabili per operare in contesti scolastici con risorse GPU contenute (8--32 GB di VRAM):
+
++ #strong[Qwen2.5-VL 7B (#NormalTok("qwen2.5vl:7b"); su Ollama):] Rappresenta il modello di riferimento primario per il test. Dotato di un'architettura multimodale all'avanguardia con supporto a risoluzioni dinamiche, eccelle nel riconoscimento della struttura di grafi, diagrammi a blocchi, frecce di associazione e nell'OCR di annotazioni manoscritte su immagini.
++ #strong[Qwen3-8B:] Modello linguistico di nuova generazione con spiccate capacità di ragionamento logico-matematico e coding SQL, particolarmente efficace nel presidio delle regole di normalizzazione (3NF) e nell'analisi sintattica dei vincoli relazionali.
++ #strong[Phi-3.5-vision (#NormalTok("phi3.5-vision");):] Modello compatto da 4.2 miliardi di parametri sviluppato per il reasoning multimodale multi-frame. Si distingue per l'estrema efficienza computazionale e per l'elevata accuratezza nella lettura di tabelle dense e diagrammi concettuali sintetici.
++ #strong[LLaVA v1.6 (#NormalTok("llava:v1.6");):] Modello open source consolidato per l'interazione visiva instruction-tuned (basato su backbone Mistral/Vicuna). Utilizzato nella ricerca come termine di paragone accademico per misurare i progressi delle architetture multimodali nell'istruzione didattica.
++ #strong[Llama 3.2 3B Vision (#NormalTok("llama3.2-vision:3b");):] Architettura multimodale ultra-compatta progettata per edge computing e ambienti con severi vincoli di memoria. Permette di valutare se sia possibile erogare il tutor socratico multimodale persino su GPU consumer o workstation scolastiche economiche dotate di soli 8--12 GB di VRAM.
+
+=== Il Modelfile per Ollama e la taratura dei parametri di inferenza
+<sec-modelfile-ollama>
+Il tutor locale viene istanziato tramite il file di configurazione #link("file:///home/massi/Documenti/GitHub/socratic-db/ollama/Modelfile")[Modelfile] collocato nella directory #NormalTok("ollama/");. Il file adotta la seguente struttura:
+
+#Skylighting(([#CommentTok("# Modelfile per Ollama - DB-Socrates: Tutor Socratico per Basi di Dati");],
+[#CommentTok("# Modello base multimodale intercambiabile (es. Qwen2.5-VL 7B)");],
+[#KeywordTok("FROM");#NormalTok(" qwen2.5vl:7b");],
+[],
+[#CommentTok("# Parametri di inferenza ottimizzati per laboratorio scolastico");],
+[#NormalTok("PARAMETER num_ctx 4096");],
+[#NormalTok("PARAMETER num_gpu 999");],
+[#NormalTok("PARAMETER temperature 0.2");],
+[#NormalTok("PARAMETER repeat_penalty 1.1");],
+[],
+[#CommentTok("# Istruzioni di sistema maieutiche (trasferite da Google Gem)");],
+[#NormalTok("SYSTEM ");#StringTok("\"\"\"");],
+[#NormalTok("RUOLO E IDENTITÀ:");],
+[#NormalTok("Sei ");#StringTok("\"DB-Socrates\"");#NormalTok(", tutor didattico di Basi di Dati...");],
+[#NormalTok("[Inclusione integrale dei 5 criteri di qualità, dei 9 deliverable e dei livelli L0-L4]");],
+[#StringTok("\"\"\"");],));
+I parametri di configurazione del #NormalTok("Modelfile"); rispondono a precisi vincoli tecnici e pedagogici:
+
+- #strong[#NormalTok("PARAMETER num_ctx 4096"); (o #NormalTok("8192");):] La dimensione del contesto è deliberatamente circoscritta a 4096 token (estendibile a 8192 token su GPU con almeno 24 GB di VRAM). Questa limitazione consente di #strong[ridurre drasticamente l'occupazione di memoria della KV cache], evitando che il contesto conversazionale saturi la VRAM e forzi l'offload dei pesi sulla CPU (che degraderebbe il throughput a frazioni di token al secondo). 4096 token risultano ampiamente sufficienti per ospitare il prompt di sistema, le coordinate visive dell'immagine analizzata e i singoli turni maieutici.
+- #strong[#NormalTok("PARAMETER num_gpu 999");:] Forza il runtime Ollama a caricare il 100% dei layer della rete neurale e del proiettore visivo all'interno della memoria VRAM della scheda video dedicata. Con l'offload totale, l'elaborazione dei token avviene alla massima velocità consentita dall'hardware (20--50 token/s su schede di fascia media o workstation).
+- #strong[#NormalTok("PARAMETER temperature 0.2");:] Una temperatura di campionamento molto bassa è indispensabile nell'ingegneria dei dati per #strong[abbattere il tasso di allucinazione nella sintassi SQL e nella logica relazionale]. Temperature più elevate generano errori sintattici casuali nel DDL o confusioni nelle clausole di JOIN; una temperatura controllata a 0.2 assicura rigore formale e riproducibilità pedagogica, preservando al contempo la naturalezza espressiva necessaria alla formulazione di domande maieutiche.
+- #strong[#NormalTok("PARAMETER repeat_penalty 1.1");:] Introduce una moderata penalizzazione per i token già generati. Nelle prove con modelli vision-language, l'analisi di immagini complesse (es. diagrammi con molti attributi ovali o frecce multiple) può innescare #strong[loop degenerativi o ripetizioni ossessive] di frammenti di testo o elenchi; il fattore 1.1 spezza questi cicli ricorsivi garantendo risposte snelle e progressive.
+
+=== Protocollo di valutazione comparativa per il Pilota 2
+<sec-valutazione-pilota-ollama>
+La sperimentazione locale sottopone ciascuno dei cinque modelli a un benchmark strutturato articolato su quattro dimensioni di collaudo:
+
++ #strong[Accuratezza dell'analisi visiva (#emph[Vision Benchmark]):]
+  - Riconoscimento di diagrammi E/R generati digitalmente (screenshot da Mermaid, draw.io o Canva);
+  - Riconoscimento di schemi disegnati a mano libera su carta e fotografati con smartphone (inclusa la corretta lettura delle etichette manoscritte e delle coppie di cardinalità min/max come #NormalTok("0..N"); o #NormalTok("1..1"););
+  - Calcolo del tasso di errore nell'individuazione di entità, attributi primari e associazioni rispetto al disegno sorgente dello studente.
++ #strong[Tenuta maieutica e rispetto delle regole socratiche:]
+  - Verifica che i modelli open-weight mantengano il vincolo di non fornire schemi completi risolutivi o codice SQL anticipato;
+  - Misurazione della capacità di scalare correttamente l'aiuto tra L0 (segnalazione sintetica), L1 (domanda mirata) e L2 (controesempio pratico dal dominio).
++ #strong[Consumo di risorse e profilo hardware:]
+  - Rilevazione della VRAM occupata al caricamento del modello (pesi quantizzati a 4/5 bit);
+  - Rilevazione dell'espansione della KV cache durante sessioni estese a 4096 token;
+  - Misurazione del #emph[Time to First Token] (TTFT) e della velocità media di generazione (token/s).
++ #strong[Capacità di servire sessioni simultanee in laboratorio:]
+  - Simulazione di una classe di laboratorio (5--10 studenti che inviano quesiti o immagini contemporaneamente verso l'istanza Ollama centralizzata su LAN);
+  - Valutazione del tempo di attesa medio per studente e della stabilità del servizio con gestione tramite coda o inferenza parallela (#NormalTok("OLLAMA_NUM_PARALLEL");).
+
+I risultati del Pilota 2 consentono di selezionare il modello open-weight più affidabile ed efficiente, che costituirà il motore linguistico del prototipo integrato descritto nel capitolo successivo.
+
+#horizontalrule
+
 == Raccolta dati e metriche di processo
 <sec-raccolta-metriche>
-Tutti i dati raccolti sono associati esclusivamente a identificativi pseudonimi (#NormalTok("s001");, #NormalTok("s002");, …):
+Tutti i dati raccolti durante la sperimentazione (sia nella fase pilota Classroom che nelle sessioni con sistema integrato) sono associati esclusivamente a identificativi pseudonimi (#NormalTok("s001");, #NormalTok("s002");, …):
 
-- #strong[Metriche quantitative di sistema]:
-  - Numero di tentativi e commit effettuati per ciascuna fase;
-  - Frequenza e tipologia delle diagnosi deterministiche sollevate (es. violazioni di integrità referenziale, errori di normalizzazione, query SQL non sintattiche);
-  - Livello massimo di aiuto richiesto (L0--L4) per esercizio;
-  - Tempo impiegato per completare ciascuna consegna;
-  - Tempi effettivi di preparazione e validazione delle tracce da parte del docente (misura della sostenibilità).
-- #strong[Metriche di apprendimento]:
-  - Punteggi ottenuti nelle rubriche del pre-test, post-test e prova di trasferimento;
-  - Indice di qualità delle spiegazioni (rubrica qualitativa a 3 livelli).
+- #strong[Metriche quantitative di processo]:
+  - Numero di iterazioni conversazionali o commit effettuati per ciascuna fase;
+  - Frequenza e tipologia degli errori concettuali e delle diagnosi sollevate (es. cardinalità invertite, attributi transitivi, violazioni di integrità referenziale, errori di sintassi SQL);
+  - Livello massimo di aiuto richiesto o erogato (L0--L4) per ciascuna tappa;
+  - Frequenza di attivazione dello scaffolding DDL (Tappa 6) e delle scorciatoie DML (Tappa 7);
+  - Tempo impiegato per completare ciascuna consegna intermedia e la prova di trasferimento;
+  - Tempi effettivi di preparazione e caricamento della traccia da parte del docente (misura della sostenibilità in Classroom e nello strumento d'autore).
+- #strong[Metriche di apprendimento e qualità modellistica]:
+  - Punteggi ottenuti nelle rubriche analitiche del pre-test, del post-test e della prova di trasferimento autonoma;
+  - Valutazione multidimensionale dell'elaborato finale rispetto ai cinque pilastri (#emph[Corretto, Completo, Minimale, Pertinente, Efficiente]);
+  - Indice di qualità delle motivazioni scritte (rubrica qualitativa a 3 livelli: menzione di requisiti, analisi delle conseguenze, confronto di alternative).
 
 #horizontalrule
 
@@ -1517,30 +1738,30 @@ Tutti i dati raccolti sono associati esclusivamente a identificativi pseudonimi 
 <sec-analisi-risultati>
 - #strong[Trattamento statistico:]
   - Calcolo di statistiche descrittive (mediana, intervallo interquartile, medie e deviazioni standard);
-  - Stima delle dimensioni dell'effetto (#emph[effect size], es. d di Cohen o r di Wilcoxon) con intervalli di confidenza al 95%;
-  - Data la dimensione contenuta dei campioni tipici scolastici (5--20 studenti per classe), l'analisi quantitativa deve essere interpretata con prudenza ed essere corroborata dall'analisi qualitativa dei percorsi individuali.
+  - Stima delle dimensioni dell'effetto (#emph[effect size], es. $d$ di Cohen o $r$ di Wilcoxon) con intervalli di confidenza al 95%;
+  - Data la dimensione contenuta dei campioni tipici scolastici (5--20 studenti per classe), l'analisi quantitativa deve essere interpretata con prudenza ed essere corroborata dall'analisi qualitativa dei percorsi individuali e delle trascrizioni conversazionali.
 - #strong[Dichiarazione delle minacce alla validità:]
-  - #emph[Effetto novità]: Entusiasmo iniziale per l'uso dell'IA generativa;
-  - #emph[Apprendimento esterno]: Studio autonomo a casa o supporto di terzi tra pre-test e post-test;
-  - #emph[Maturazione naturale]: Miglioramento fisiologico dovuto al normale avanzamento dell'anno scolastico.
+  - #emph[Effetto novità]: Entusiasmo iniziale per l'uso dell'IA generativa multimodale e delle Gem in chat;
+  - #emph[Apprendimento esterno]: Studio autonomo a casa o supporto di pari tra le sessioni di laboratorio;
+  - #emph[Maturazione naturale]: Miglioramento fisiologico delle competenze informatiche dovuto al normale avanzamento dell'anno scolastico.
 
 === Criteri di successo definiti a priori
 <criteri-di-successo-definiti-a-priori>
-+ #strong[Incremento significativo nel post-test e nel trasferimento]: Miglioramento misurabile nella capacità di modellazione e interrogazione autonoma rispetto al livello di ingresso.
-+ #strong[Riduzione della dipendenza dall'aiuto]: Diminuzione statisticamente visibile del livello medio di aiuto richiesto tra la prima e l'ultima consegna.
-+ #strong[Miglioramento della capacità critica]: Incremento qualitativo dei testi di motivazione inseriti negli schemi.
-+ #strong[Sostenibilità del carico di lavoro del docente]: Tempo medio di preparazione e validazione della traccia tramite strumento d'autore contenuto entro i 30 minuti; tempo di revisione per classe compatibile con il normale orario di servizio.
-+ #strong[Accordo del tutor sulle query]: Accordo tra il parere non vincolante del tutor in fase 8 e il giudizio dei docenti su almeno l'85% del campione esaminato.
-+ #strong[Zero incidenti di sicurezza e privacy]: Nessun dato personale esfiltrato e rispetto integrale dei protocolli approvati.
++ #strong[Incremento significativo nel post-test e nel trasferimento]: Miglioramento misurabile nella capacità di modellazione e interrogazione autonoma (fase 9 / Tappa 9) rispetto al livello di ingresso rilevato nel pre-test.
++ #strong[Riduzione della dipendenza dall'aiuto]: Diminuzione visibile del livello medio di aiuto richiesto (da L3/L4 verso L0/L1) tra le prime tappe del percorso e le fasi conclusive.
++ #strong[Tenuta maieutica del tutor LLM nella fase pilota]: Tasso di mancata fuga della soluzione superiore al 95% nelle trascrizioni conversazionali della Gem in Google Classroom, senza rilascio indebito di schemi completi non richiesti dallo scaffolding controllato.
++ #strong[Miglioramento della capacità critica e di motivazione]: Incremento qualitativo dei testi esplicativi forniti dagli studenti nell'analisi nomi-verbi, nelle cardinalità e nella discussione delle forme normali.
++ #strong[Sostenibilità operativa per il docente]: Tempo medio di impostazione del compito in Google Classroom contenuto entro i 15 minuti; tempo di lettura del report e campionamento delle trascrizioni compatibile con il normale orario di servizio curricolare.
++ #strong[Zero incidenti di sicurezza e privacy]: Nessun dato personale di studenti condiviso all'esterno dell'ambiente protetto di Google Workspace for Education e rispetto integrale della normativa GDPR.
 
 #horizontalrule
 
 == Etica, governance e consenso
 <sec-etica-governance>
-- #strong[Approvazione formale degli organi collegiali:] Delibera del Collegio dei Docenti e del Consiglio di Istituto sull'adozione della sperimentazione.
-- #strong[Coinvolgimento del DPO:] Emissione del parere favorevole sulla DPIA e sulle informative per famiglie e studenti.
-- #strong[Volontarietà e diritto di recesso:] Possibilità per ogni studente di partecipare senza obbligo e di ritirarsi in qualsiasi momento optando per il percorso didattico alternativo tradizionale, senza alcuna penalizzazione sul piano valutativo curricolare.
-- #strong[Restituzione formativa:] Sessione finale di debriefing con gli studenti per discutere i risultati aggregati, le difficoltà emerse e il ruolo critico dell'IA nei contesti professionali.
+- #strong[Approvazione formale degli organi collegiali:] Delibera del Collegio dei Docenti e del Consiglio di Istituto sull'adozione della sperimentazione didattica con l'IA.
+- #strong[Coinvolgimento del DPO e informativa scolastica:] Emissione del parere favorevole sulla Valutazione d'Impatto sulla Protezione dei Dati (DPIA) relativa all'uso di Google Workspace for Education e delle Gem/LLM, con informativa dettagliata alle famiglie e agli studenti.
+- #strong[Volontarietà e diritto di recesso:] Possibilità per ogni studente di partecipare senza obbligo e di ritirarsi in qualsiasi momento optando per il percorso didattico tradizionale con correzione periodica del docente, senza alcuna penalizzazione sul piano valutativo curricolare.
+- #strong[Restituzione formativa e debriefing:] Sessione finale di confronto in classe con gli studenti per discutere i risultati complessivi, le difficoltà cognitive riscontrate, i limiti riscontrati nelle risposte del modello linguistico e il ruolo consapevole e critico dell'IA generativa nelle professioni informatiche.
 
 #bibliography(("riferimenti.bib"))
 
