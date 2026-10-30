@@ -3,7 +3,7 @@
 QUARTO ?= quarto
 PYTHON ?= python3
 
-.PHONY: help all pdf docx html md single-md clean dist-init
+.PHONY: help all pdf docx html md single-md zip clean dist-init
 
 help:
 	@echo "Comandi disponibili per Socratic-DB:"
@@ -12,6 +12,7 @@ help:
 	@echo "  make docx      - Compila il documento Word DOCX"
 	@echo "  make html      - Compila il sito/libro web HTML"
 	@echo "  make md        - Genera il file Markdown unico (dist/socratic-db-full.md)"
+	@echo "  make zip       - Esporta i file tracciati da Git in socratic-db.zip"
 	@echo "  make clean     - Rimuove la cartella dist/ e le cache di Quarto"
 
 dist-init:
@@ -42,6 +43,11 @@ md: single-md
 single-md: dist-init
 	@echo "==> Generazione Markdown unico..."
 	@$(PYTHON) scripts/build_single_md.py
+
+zip:
+	@echo "==> Creazione socratic-db.zip dai file tracciati da Git..."
+	@rm -f socratic-db.zip
+	@git ls-files -z | xargs -0 zip -q -X socratic-db.zip
 
 clean:
 	@echo "==> Pulizia dist/ e cache..."

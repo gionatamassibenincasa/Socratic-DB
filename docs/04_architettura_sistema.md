@@ -42,6 +42,7 @@ Configurazione di riferimento per il server locale: **macchina Linux con 64 GB d
   - Modelli della famiglia Qwen 2.5 / 3 (30–32B parametri);
   - Modelli open weights equivalenti con forte supporto SQL e logica.
   La scelta finale è guidata empiricamente dai risultati sul golden set (@sec-test-sistema), non dalla notorietà.
+
 - **Parametri di inferenza:** Temperatura bassa ($T \approx 0.1 - 0.2$) e seed fisso nei test di conformità per massimizzare la riproducibilità.
 - **Concorrenza:** Gestione di una coda FIFO con priorità singola GPU; con 5–20 studenti a ritmo di riflessione e digitazione, la latenza per turno di dialogo resta nell'ordine di pochi secondi.
 - **Visione artificiale:** Esclusa dal prototipo iniziale; demandata al sistema avanzato (@sec-sistema-avanzato).
@@ -84,6 +85,7 @@ Il sistema integra tre famiglie di test automatici eseguibili in `pytest` e nell
 
 ### Verifica deterministica dei dati di test generati dalla LLM (fase 7, se abilitata) {#sec-verifica-dati-generati}
 Quando il docente abilita la generazione assistita dei dati:
+
 - Lo script SQL generato deve essere composto unicamente da istruzioni `INSERT`.
 - Esecuzione obbligatoria senza errori sul DDL dello studente con `PRAGMA foreign_keys = ON;`.
 - Verifica della copertura strutturale minima derivata dallo schema: numero minimo di righe per tabella, presenza di almeno un'istanza genitore priva di figli, presenza di valori nulli nelle colonne opzionali, valori ripetuti per consentire test di aggregazione (`GROUP BY` e `COUNT`).
@@ -138,6 +140,7 @@ Infrastruttura basata su istanza on-premise di **GitLab Community Edition** (o *
   08_query.sql
   motivazioni.md
   ```
+
 - **Commit motivati:** Ogni modifica deve essere accompagnata da un messaggio di commit esplicativo che motivi il perché della variazione; la cronologia Git costituisce la prova primaria della capacità di revisione autonoma.
 - **Merge Request e Pipeline CI:** L'apertura della Merge Request per ciascuna consegna scatena la pipeline di validazione:
   ```yaml
@@ -154,6 +157,7 @@ Infrastruttura basata su istanza on-premise di **GitLab Community Edition** (o *
       - python -m socratic.run --ddl 06_schema.sql --dati 07_dati.sql --query 08_query.sql --test tests/
     allow_failure: true
   ```
+
 - **Review umana del docente:** Il docente può intervenire direttamente nella discussione della Merge Request commentando a campione gli elaborati. Tutti i commenti automatici del sistema riportano chiaramente la dicitura: *«Verifica tecnica automatica, priva di valore valutativo»*.
 
 ## Strumento d'autore per il docente {#sec-strumento-autore}
@@ -169,6 +173,7 @@ Agente specializzato a compito unico per accelerare la preparazione dei material
 ## Ipotesi di sistema avanzato (Post-sperimentazione) {#sec-sistema-avanzato}
 
 Funzionalità previste per successive evoluzioni della piattaforma:
+
 - **Visione artificiale per schemi manoscritti:** Modello multimodale (VLM) per la trascrizione automatica di diagrammi concettuali disegnati a mano libera su carta; la trascrizione produce un'ipotesi YAML che lo studente corregge e valida prima di avviare il dialogo.
 - **Architettura multi-agente specializzata:** Disaccoppiamento tra agente trascrittore, agente per l'analisi di vincoli complessi, generatore di controesempi e sintetizzatore di report per il docente, coordinati da una FSM centrale.
 - **Supporto multi-notazione:** Convertitori bidirezionali tra formato YAML e formati grafici o testuali (Mermaid, PlantUML, diagrammi relazionali Chen/Crow's Foot).
