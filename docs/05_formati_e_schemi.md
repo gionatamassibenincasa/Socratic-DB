@@ -1,4 +1,6 @@
-# Specifiche dei formati e contratti dati {#sec-formati-contratti}
+# Appendice B — Formati, schemi e consegne strutturate {#sec-formati-schemi}
+
+> **Destinatari di questa appendice:** docenti tecnici e sviluppatori del prototipo. Gli studenti, nella fase iniziale (Pilota 1), non sono obbligati a produrre YAML: le consegne possono restare in Markdown e testo. I formati qui descritti servono ai piloti successivi e all’automazione dei controlli.
 
 Per garantire interoperabilità, elaborazione automatica deterministica e feedback preciso da parte dell'LLM, il sistema adotta formati testuali standard e rigorosamente tipizzati.
 
