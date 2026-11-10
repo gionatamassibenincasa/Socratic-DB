@@ -101,12 +101,24 @@ Esempi di item per pre/post-test e prova di trasferimento potranno essere costru
 
 ## Progressione a piloti
 
-1. **Pilota 1 – Zero-infrastructure** (già avviato): Gem di Gemini in Google Classroom.  
-2. **Pilota 2 – On-premise leggero**: Ollama sulla workstation (6 GB VRAM).  
-3. **Pilota 3 – Stack parziale**: alcuni controlli deterministici e sandbox SQLite.  
-4. **Pilota 4 – Stack completo**: architettura neuro-simbolica piena (solo dopo consolidamento).
+La sperimentazione procede per fasi successive. Il dettaglio di configurazione (Gem, Modelfile, stack) è nelle **appendici tecniche**; qui si riporta solo il senso organizzativo.
 
-Criteri di passaggio (go/no-go) includono: tenuta maieutica entro le soglie di fuga, feedback positivo, assenza di incidenti privacy, carico docente entro le stime.
+1. **Pilota 1 – Avvio senza infrastruttura dedicata** (già in corso): uso di Gemini tramite Google Classroom, con istruzioni socratiche. Non richiede installazioni locali.
+2. **Pilota 2 – Esecuzione in laboratorio**: stesso ruolo del tutor, su workstation dell’Istituto (quando i criteri di passaggio del Pilota 1 sono soddisfatti).
+3. **Pilota 3 e 4 – Controlli automatici e stack più completo**: solo dopo il consolidamento dei piloti precedenti.
+
+**Criteri di passaggio (go/no-go):** tenuta maieutica entro le soglie di fuga; feedback positivo; assenza di incidenti di privacy; carico docente entro le stime.
+
+**Orchestrazione di contesti specializzati.** Un unico contesto conversazionale troppo ampio (system prompt generico + intera storia del dialogo su glossario, E/R, modello logico e SQL) tende a diluire le istruzioni maieutiche, aumentare il rischio di “fuga della soluzione” e degradare la coerenza del tutor. Si prevede pertanto l’orchestrazione di **GEM (o Modelfile) distinte e specializzate per fase**, ciascuna con contesto ristretto e istruzioni focalizzate:
+
+- Gem/Modelfile *Glossario*
+- Gem/Modelfile *Modello concettuale E/R*
+- Gem/Modelfile *Modello logico e vincoli*
+- (eventuale) Gem/Modelfile *SQL / interrogazione*
+
+Il passaggio di fase può avvenire manualmente (docente o studente) o, in stadi successivi, tramite un leggero orchestratore. In Pilota 1 si può partire con una o due Gem e progressivamente specializzare. Il dettaglio operativo è in Appendice C.
+
+Per l’implementazione tecnica: Appendice C (Gem, Skill, Modelfile), Appendice A (architettura e hardware), Appendice B (formati strutturati, non obbligatori nel Pilota 1).
 
 ---
 
@@ -237,6 +249,7 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 |---------|-------------|
 | Delega cognitiva | Livelli L0–L4 + prova di trasferimento su carta |
 | Fuga della soluzione | Istruzioni rigorose + autodichiarazione + campione |
+| Contesto LLM troppo ampio / diluizione del prompt | Orchestrazione di GEM o Modelfile specializzate per fase (glossario, E/R, modello logico, SQL); contesto ristretto e istruzioni focalizzate; reset o passaggio esplicito tra fasi; priorità alle istruzioni maieutiche essenziali |
 | Carico docente | Avvio con 5 studenti; stime orarie esplicite |
 | 6 GB VRAM | Modelli quantizzati; priorità al Pilota 1 |
 | Privacy | DPO; consenso; opzione maggiorenni |
