@@ -1,4 +1,6 @@
-# Architettura del sistema e prototipo tecnico {#sec-architettura-sistema}
+# Appendice A — Architettura del sistema e prototipo tecnico {#sec-architettura-sistema}
+
+> **Destinatari di questa appendice:** amministratori dell’infrastruttura, docenti tecnici e chi realizza o mantiene lo stack. Il corpo principale del documento non richiede la lettura di questa sezione.
 
 ## Principi architetturali {#sec-principi-architetturali}
 
