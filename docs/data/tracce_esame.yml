@@ -1,6 +1,5 @@
 # Catalogo tracce Seconda Prova – Esame di Stato
-# I link "Markdown" puntano ai file in tracce/ (testo estratto dal PDF ministeriale).
-# I link "Ministero" sono gli URL ufficiali dei PDF.
+# I link "Markdown" puntano alle schede in tracce/; i link "Ministero" ai PDF ufficiali.
 
 - Indirizzo: "ITC – Programmatori"
   Anno: "2007"
@@ -199,3 +198,57 @@
   "Traccia / dominio nel PDF": "Seconda prova 2023 suppletiva (A038)"
   Markdown: "[mim-2022-23-itia-suppletiva-a038.md](../../tracce/mim-2022-23-itia-suppletiva-a038.md)"
   "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Suppletiva/A038_SUP23.pdf)"
+
+- Indirizzo: "ITSI – Sistemi Informativi Aziendali"
+  Anno: "2025"
+  Sessione: "Ordinaria"
+  Codice: "A043"
+  Disciplina: "Informatica"
+  "Traccia / dominio nel PDF": "MusicOmega: piattaforma di streaming musicale, ascolti, playlist e royalties"
+  Markdown: "[mim-2024-25-itsi-ordinaria-a043.md](../../tracce/mim-2024-25-itsi-ordinaria-a043.md)"
+  "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Ordinaria/A043_ORD25.pdf)"
+
+- Indirizzo: "ITSI – Sistemi Informativi Aziendali"
+  Anno: "2025"
+  Sessione: "Suppletiva"
+  Codice: "A043"
+  Disciplina: "Informatica"
+  "Traccia / dominio nel PDF": "Shopsharing: spazi espositivi, disponibilità e prenotazioni"
+  Markdown: "[mim-2024-25-itsi-suppletiva-a043.md](../../tracce/mim-2024-25-itsi-suppletiva-a043.md)"
+  "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Suppletiva/A043_SUP25.pdf)"
+
+- Indirizzo: "ITSI – Sistemi Informativi Aziendali"
+  Anno: "2025"
+  Sessione: "Straordinaria"
+  Codice: "A043"
+  Disciplina: "Informatica"
+  "Traccia / dominio nel PDF": "Sostenibilità aziendale: certificazioni, indicatori ambientali e sanzioni"
+  Markdown: "[mim-2024-25-itsi-straordinaria-a043.md](../../tracce/mim-2024-25-itsi-straordinaria-a043.md)"
+  "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Straordinaria/A043_STR25.pdf)"
+
+- Indirizzo: "ITIA – Informatica"
+  Anno: "2025"
+  Sessione: "Ordinaria"
+  Codice: "A038"
+  Disciplina: "Informatica"
+  "Traccia / dominio nel PDF": "Dataset e labeling di notizie per l’addestramento di sistemi di IA"
+  Markdown: "[mim-2024-25-itia-ordinaria-a038.md](../../tracce/mim-2024-25-itia-ordinaria-a038.md)"
+  "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Ordinaria/A038_ORD25.pdf)"
+
+- Indirizzo: "ITIA – Informatica"
+  Anno: "2025"
+  Sessione: "Suppletiva"
+  Codice: "A038"
+  Disciplina: "Informatica"
+  "Traccia / dominio nel PDF": "Piattaforma per campagne di sponsorizzazione con comunicatori social"
+  Markdown: "[mim-2024-25-itia-suppletiva-a038.md](../../tracce/mim-2024-25-itia-suppletiva-a038.md)"
+  "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Suppletiva/A038_SUP25.pdf)"
+
+- Indirizzo: "ITIA – Informatica"
+  Anno: "2025"
+  Sessione: "Straordinaria"
+  Codice: "A038"
+  Disciplina: "Informatica"
+  "Traccia / dominio nel PDF": "Analisi automatica delle azioni di gioco nelle partite di basket"
+  Markdown: "[mim-2024-25-itia-straordinaria-a038.md](../../tracce/mim-2024-25-itia-straordinaria-a038.md)"
+  "PDF e fonte": "[Ministero](https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Straordinaria/A038_STR25.pdf)"
