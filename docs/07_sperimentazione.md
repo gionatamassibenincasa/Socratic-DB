@@ -109,14 +109,19 @@ La sperimentazione procede per fasi successive. Il dettaglio di configurazione (
 
 **Criteri di passaggio (go/no-go):** tenuta maieutica entro le soglie di fuga; feedback positivo; assenza di incidenti di privacy; carico docente entro le stime.
 
-**Orchestrazione di contesti specializzati.** Un unico contesto conversazionale troppo ampio (system prompt generico + intera storia del dialogo su glossario, E/R, modello logico e SQL) tende a diluire le istruzioni maieutiche, aumentare il rischio di “fuga della soluzione” e degradare la coerenza del tutor. Si prevede pertanto l’orchestrazione di **GEM (o Modelfile) distinte e specializzate per fase**, ciascuna con contesto ristretto e istruzioni focalizzate:
+**Composizione del contesto del tutor.** Nei Piloti 1 e 2 si mantiene una sola Gem istituzionale e, rispettivamente, una sola Skill e un solo Modelfile. Moltiplicare le configurazioni non riduce il contesto della singola interazione: aumenta invece il rischio di divergenza tra istruzioni, di selezione del tutor errato e di frammentazione del percorso dello studente.
 
-- Gem/Modelfile *Glossario*
-- Gem/Modelfile *Modello concettuale E/R*
-- Gem/Modelfile *Modello logico e vincoli*
-- (eventuale) Gem/Modelfile *SQL / interrogazione*
+Il prompt è articolato in:
 
-Il passaggio di fase può avvenire manualmente (docente o studente) o, in stadi successivi, tramite un leggero orchestratore. In Pilota 1 si può partire con una o due Gem e progressivamente specializzare. Il dettaglio operativo è in Appendice C.
+- un **nucleo comune**: ruolo socratico, divieto di soluzione completa e di valutazione, lingua italiana, protezione dei dati e definizioni dei livelli L0–L4;
+- un **modulo della fase/consegna corrente**: obiettivo didattico, dimensioni di qualità del prodotto, formato atteso, errori tipici e pochi esempi pertinenti a requisiti, glossario, E/R, modello relazionale, DDL, dati o query;
+- una **regola maieutica trasversale**: il livello L0–L4 determina come esporre una diagnosi, non quale attività didattica sia in corso.
+
+Non si configurano Gem, Skill o Modelfile separati per ciascun livello L0–L4. I casi esemplificativi fase × livello possono essere mantenuti come materiale modulare e selezionati solo quando pertinenti; inserirli tutti in un prompt statico competerebbe con traccia, elaborato e cronologia del dialogo, riducendo l'affidabilità del comportamento maieutico. Una configurazione runtime distinta sarà valutata solo se una fase richiederà input, formati o controlli deterministici realmente diversi.
+
+Gem e Modelfile sono configurazioni statiche: con una sola configurazione non selezionano autonomamente il modulo di consegna. Nei Piloti 1 e 2 il passaggio di fase e l'istruzione mirata restano quindi espliciti e guidati dal docente o dallo studente. Un orchestratore leggero potrà in seguito selezionare il modulo pertinente e limitare il contesto trasmesso. Il dettaglio operativo è in Appendice C.
+
+La fattibilità operativa della scelta è un'ipotesi da verificare, non una proprietà già dimostrata. Il Pilota 1 confronterà, quando sostenibile, il nucleo comune da solo, il nucleo con istruzione manuale di fase e l'eventuale configurazione distinta per fase; per ciascun caso rileverà fuga della soluzione, rispetto del livello L0–L4, pertinenza del feedback e carico per docente e studenti. Il Pilota 2 aggiungerà la verifica di contesto, latenza e qualità del modello locale sull'hardware disponibile.
 
 Per l’implementazione tecnica: Appendice C (Gem, Skill, Modelfile), Appendice A (architettura e hardware), Appendice B (formati strutturati, non obbligatori nel Pilota 1).
 
@@ -196,6 +201,13 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 
 - Questionario Likert e domande aperte (usabilità, autonomia, utilità, carico)
 
+**Fattibilità tecnica**
+
+- Rispetto osservato dei livelli L0–L4 e del divieto di soluzione completa
+- Pertinenza del feedback rispetto alla consegna e all'elaborato
+- Gestibilità del passaggio manuale di fase nei Piloti 1–2
+- Limiti di contesto, latenza e qualità del modello locale nel Pilota 2
+
 ---
 
 ## Consenso e privacy
@@ -249,7 +261,7 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 |---------|-------------|
 | Delega cognitiva | Livelli L0–L4 + prova di trasferimento su carta |
 | Fuga della soluzione | Istruzioni rigorose + autodichiarazione + campione |
-| Contesto LLM troppo ampio / diluizione del prompt | Orchestrazione di GEM o Modelfile specializzate per fase (glossario, E/R, modello logico, SQL); contesto ristretto e istruzioni focalizzate; reset o passaggio esplicito tra fasi; priorità alle istruzioni maieutiche essenziali |
+| Contesto LLM troppo ampio / diluizione del prompt | Nucleo maieutico stabile + modulo della consegna corrente; selezione dei soli esempi pertinenti; passaggio esplicito e manuale nei Piloti 1–2; futura orchestrazione leggera del contesto, senza moltiplicare configurazioni per livello L0–L4 |
 | Carico docente | Avvio con 5 studenti; stime orarie esplicite |
 | 6 GB VRAM | Modelli quantizzati; priorità al Pilota 1 |
 | Privacy | DPO; consenso; opzione maggiorenni |
