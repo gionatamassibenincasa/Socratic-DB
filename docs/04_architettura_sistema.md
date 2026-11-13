@@ -33,6 +33,12 @@
 4. Il tutor LLM riceve le sole diagnosi e il livello di aiuto corrente, trasformandole in una risposta socratica conforme alle regole pedagogiche.
 5. L'orchestratore applica un filtro di sicurezza (controllo di non-fuga della soluzione) e restituisce la risposta allo studente.
 
+### Composizione del contesto del tutor
+
+L'orchestratore compone il contesto con un nucleo di policy invarianti e il solo modulo relativo alla fase/consegna corrente. Il nucleo definisce il ruolo socratico, il divieto di fornire soluzioni o valutazioni, i vincoli di privacy e i livelli L0–L4; il modulo di fase contiene formato atteso, dimensioni di qualità, errori tipici ed esempi mirati.
+
+Il livello di aiuto è un parametro trasversale di resa della diagnosi e non determina un prompt o un modello distinto. Eventuali esempi per combinazioni fase × livello sono risorse modulari, da includere solo se pertinenti. Questa composizione limita la competizione tra istruzioni, traccia, consegna e cronologia; l'orchestratore deve preservare il nucleo invariabile e selezionare il minimo contesto necessario. Questa selezione è una capacità dell'orchestratore: non è offerta automaticamente da una configurazione statica di Gem o Modelfile.
+
 ## Hardware e scelta del modello {#sec-hardware-modello}
 
 Configurazione di riferimento per il server locale: **macchina Linux con 64 GB di RAM e GPU da 32 GB di VRAM**.

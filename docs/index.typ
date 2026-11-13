@@ -126,6 +126,7 @@
           subfloat-numbering(n-super, subfloat-idx)
         })
         show figure.where(kind: kind): set figure.caption(position: position)
+        show figure.where(kind: kind): set figure(outlined: false)
 
         show figure: it => {
           let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)
@@ -304,6 +305,10 @@
   toc_title: none,
   toc_depth: none,
   toc_indent: 1.5em,
+  lof: false,
+  lof-title: none,
+  lot: false,
+  lot-title: none,
   doc,
 ) = {
   // Set document metadata for PDF accessibility
@@ -401,10 +406,22 @@
     }
     block(above: 0em, below: 2em)[
     #outline(
-      title: toc_title,
+      title: title,
       depth: toc_depth,
       indent: toc_indent
     );
+    ]
+  }
+
+  if lof {
+    block(above: 0em, below: 2em)[
+    #outline(title: lof-title, target: figure.where(kind: "quarto-float-fig"));
+    ]
+  }
+
+  if lot {
+    block(above: 0em, below: 2em)[
+    #outline(title: lot-title, target: figure.where(kind: "quarto-float-tbl"));
     ]
   }
 
@@ -434,7 +451,7 @@
   title: [Socratic-DB],
   subtitle: [Tutor socratico per la progettazione di basi di dati relazionali],
   author: "Gionata Massi",
-  date: "2026-10-31",
+  date: "2026-11-13",
   lang: "it",
   main-color: brand-color.at("primary", default: blue),
   logo: {
@@ -589,7 +606,7 @@ Dal punto di vista dell'interazione uomo--macchina, l'uso di sistemi generativi 
 <sec-its-database>
 === Intelligent Tutoring Systems e Constraint-Based Modeling
 <sec-its-cbm>
-I #emph[Intelligent Tutoring Systems] (ITS) costituiscono un precedente importante per il feedback automatizzato in domini tecnici. In particolare, SQL-Tutor di Mitrović illustra il #emph[Constraint-Based Modeling] (CBM): il sistema confronta la soluzione dello studente con vincoli disciplinari espliciti e restituisce feedback sulle violazioni @mitrovic1998sql@mitrovic2003cbm. Questo approccio offre un riferimento per rendere espliciti i criteri di controllo. Non implica, tuttavia, che ogni soluzione semanticamente valida possa essere riconosciuta automaticamente, né che lo stesso modello si trasferisca senza adattamenti a tutte le fasi della progettazione di una base di dati.
+Gli #emph[Intelligent Tutoring Systems] (ITS) costituiscono un precedente importante per il feedback automatizzato in domini tecnici. In particolare, SQL-Tutor di Mitrović illustra il #emph[Constraint-Based Modeling] (CBM): il sistema confronta la soluzione dello studente con vincoli disciplinari espliciti e restituisce feedback sulle violazioni @mitrovic1998sql@mitrovic2003cbm. Questo approccio offre un riferimento per rendere espliciti i criteri di controllo. Non implica, tuttavia, che ogni soluzione semanticamente valida possa essere riconosciuta automaticamente, né che lo stesso modello si trasferisca senza adattamenti a tutte le fasi della progettazione di una base di dati.
 
 Socratic-DB condivide con gli approcci basati su vincoli l'idea di non affidare ogni giudizio tecnico alla sola generazione linguistica. La differenza proposta è l'ambito del percorso: oltre alla formulazione di query, si considerano analisi dei requisiti, modellazione concettuale, schema relazionale, implementazione e interrogazione. I controlli coprono solo proprietà formalizzate; la loro copertura effettiva va misurata. L'esecuzione su un database di prova fornisce evidenza circoscritta: una query corretta su un dataset può fallire su altri dati o non rispettare tutti i requisiti.
 
@@ -962,6 +979,12 @@ Le prove degli Esami di Stato sono una fonte primaria di tracce. Prima dell'uso,
   [ITIA -- Informatica], [2019], [Suppletiva], [AB42], [Informatica], [Seconda prova 2019 suppletiva (AB42)], [#link("../../tracce/mim-2018-19-itia-suppletiva-ab42.md")[mim-2018-19-itia-suppletiva-ab42.md]], [#link("https://www.istruzione.it/esame_di_stato/201819/Istituti%20tecnici/Suppletiva/AB42_SUP19.pdf")[Ministero]],
   [ITIA -- Informatica], [2023], [Ordinaria], [A038], [Informatica], [Seconda prova 2023 ordinaria (A038)], [#link("../../tracce/mim-2022-23-itia-ordinaria-a038.md")[mim-2022-23-itia-ordinaria-a038.md]], [#link("https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Ordinaria/A038_ORD23.pdf")[Ministero]],
   [ITIA -- Informatica], [2023], [Suppletiva], [A038], [Informatica], [Seconda prova 2023 suppletiva (A038)], [#link("../../tracce/mim-2022-23-itia-suppletiva-a038.md")[mim-2022-23-itia-suppletiva-a038.md]], [#link("https://www.istruzione.it/esame_di_stato/202223/Istituti%20tecnici/Suppletiva/A038_SUP23.pdf")[Ministero]],
+  [ITSI -- Sistemi Informativi Aziendali], [2025], [Ordinaria], [A043], [Informatica], [MusicOmega: piattaforma di streaming musicale, ascolti, playlist e royalties], [#link("../../tracce/mim-2024-25-itsi-ordinaria-a043.md")[mim-2024-25-itsi-ordinaria-a043.md]], [#link("https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Ordinaria/A043_ORD25.pdf")[Ministero]],
+  [ITSI -- Sistemi Informativi Aziendali], [2025], [Suppletiva], [A043], [Informatica], [Shopsharing: spazi espositivi, disponibilità e prenotazioni], [#link("../../tracce/mim-2024-25-itsi-suppletiva-a043.md")[mim-2024-25-itsi-suppletiva-a043.md]], [#link("https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Suppletiva/A043_SUP25.pdf")[Ministero]],
+  [ITSI -- Sistemi Informativi Aziendali], [2025], [Straordinaria], [A043], [Informatica], [Sostenibilità aziendale: certificazioni, indicatori ambientali e sanzioni], [#link("../../tracce/mim-2024-25-itsi-straordinaria-a043.md")[mim-2024-25-itsi-straordinaria-a043.md]], [#link("https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Straordinaria/A043_STR25.pdf")[Ministero]],
+  [ITIA -- Informatica], [2025], [Ordinaria], [A038], [Informatica], [Dataset e labeling di notizie per l'addestramento di sistemi di IA], [#link("../../tracce/mim-2024-25-itia-ordinaria-a038.md")[mim-2024-25-itia-ordinaria-a038.md]], [#link("https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Ordinaria/A038_ORD25.pdf")[Ministero]],
+  [ITIA -- Informatica], [2025], [Suppletiva], [A038], [Informatica], [Piattaforma per campagne di sponsorizzazione con comunicatori social], [#link("../../tracce/mim-2024-25-itia-suppletiva-a038.md")[mim-2024-25-itia-suppletiva-a038.md]], [#link("https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Suppletiva/A038_SUP25.pdf")[Ministero]],
+  [ITIA -- Informatica], [2025], [Straordinaria], [A038], [Informatica], [Analisi automatica delle azioni di gioco nelle partite di basket], [#link("../../tracce/mim-2024-25-itia-straordinaria-a038.md")[mim-2024-25-itia-straordinaria-a038.md]], [#link("https://www.istruzione.it/esame_di_stato/202425/Istituti%20tecnici/Straordinaria/A038_STR25.pdf")[Ministero]],
 )
 Nel PDF di simulazione ministeriale del 2015 il codice M963 compare nel nome del file, non nel testo della prova (\*). Nei PDF del 2019 non è riportato un codice nel frontespizio; per questo non ne è indicato uno. Le voci i cui URL ministeriali restituivano un errore 404 sono state escluse finché non sarà disponibile una fonte funzionante.
 
@@ -1216,6 +1239,20 @@ La sperimentazione procede per fasi successive. Il dettaglio di configurazione (
 
 #strong[Criteri di passaggio (go/no-go):] tenuta maieutica entro le soglie di fuga; feedback positivo; assenza di incidenti di privacy; carico docente entro le stime.
 
+#strong[Composizione del contesto del tutor.] Nei Piloti 1 e 2 si mantiene una sola Gem istituzionale e, rispettivamente, una sola Skill e un solo Modelfile. Moltiplicare le configurazioni non riduce il contesto della singola interazione: aumenta invece il rischio di divergenza tra istruzioni, di selezione del tutor errato e di frammentazione del percorso dello studente.
+
+Il prompt è articolato in:
+
+- un #strong[nucleo comune]: ruolo socratico, divieto di soluzione completa e di valutazione, lingua italiana, protezione dei dati e definizioni dei livelli L0--L4;
+- un #strong[modulo della fase/consegna corrente]: obiettivo didattico, dimensioni di qualità del prodotto, formato atteso, errori tipici e pochi esempi pertinenti a requisiti, glossario, E/R, modello relazionale, DDL, dati o query;
+- una #strong[regola maieutica trasversale]: il livello L0--L4 determina come esporre una diagnosi, non quale attività didattica sia in corso.
+
+Non si configurano Gem, Skill o Modelfile separati per ciascun livello L0--L4. I casi esemplificativi fase × livello possono essere mantenuti come materiale modulare e selezionati solo quando pertinenti; inserirli tutti in un prompt statico competerebbe con traccia, elaborato e cronologia del dialogo, riducendo l'affidabilità del comportamento maieutico. Una configurazione runtime distinta sarà valutata solo se una fase richiederà input, formati o controlli deterministici realmente diversi.
+
+Gem e Modelfile sono configurazioni statiche: con una sola configurazione non selezionano autonomamente il modulo di consegna. Nei Piloti 1 e 2 il passaggio di fase e l'istruzione mirata restano quindi espliciti e guidati dal docente o dallo studente. Un orchestratore leggero potrà in seguito selezionare il modulo pertinente e limitare il contesto trasmesso. Il dettaglio operativo è in Appendice C.
+
+La fattibilità operativa della scelta è un'ipotesi da verificare, non una proprietà già dimostrata. Il Pilota 1 confronterà, quando sostenibile, il nucleo comune da solo, il nucleo con istruzione manuale di fase e l'eventuale configurazione distinta per fase; per ciascun caso rileverà fuga della soluzione, rispetto del livello L0--L4, pertinenza del feedback e carico per docente e studenti. Il Pilota 2 aggiungerà la verifica di contesto, latenza e qualità del modello locale sull'hardware disponibile.
+
 Per l'implementazione tecnica: Appendice C (Gem, Skill, Modelfile), Appendice A (architettura e hardware), Appendice B (formati strutturati, non obbligatori nel Pilota 1).
 
 #horizontalrule
@@ -1295,6 +1332,13 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d'Istituto, tracce gene
 
 - Questionario Likert e domande aperte (usabilità, autonomia, utilità, carico)
 
+#strong[Fattibilità tecnica]
+
+- Rispetto osservato dei livelli L0--L4 e del divieto di soluzione completa
+- Pertinenza del feedback rispetto alla consegna e all'elaborato
+- Gestibilità del passaggio manuale di fase nei Piloti 1--2
+- Limiti di contesto, latenza e qualità del modello locale nel Pilota 2
+
 #horizontalrule
 
 == Consenso e privacy
@@ -1355,6 +1399,7 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d'Istituto, tracce gene
   table.hline(),
   [Delega cognitiva], [Livelli L0--L4 + prova di trasferimento su carta],
   [Fuga della soluzione], [Istruzioni rigorose + autodichiarazione + campione],
+  [Contesto LLM troppo ampio / diluizione del prompt], [Nucleo maieutico stabile + modulo della consegna corrente; selezione dei soli esempi pertinenti; passaggio esplicito e manuale nei Piloti 1--2; futura orchestrazione leggera del contesto, senza moltiplicare configurazioni per livello L0--L4],
   [Carico docente], [Avvio con 5 studenti; stime orarie esplicite],
   [6 GB VRAM], [Modelli quantizzati; priorità al Pilota 1],
   [Privacy], [DPO; consenso; opzione maggiorenni],
@@ -1420,6 +1465,12 @@ Ogni modifica sostanziale al protocollo va motivata e sottoposta a Dirigente e D
 + Vengono eseguiti i controlli deterministici (integrità referenziale, normalizzazione, esecuzione su SQLite isolato) e costruite le diagnosi strutturate.
 + Il tutor LLM riceve le sole diagnosi e il livello di aiuto corrente, trasformandole in una risposta socratica conforme alle regole pedagogiche.
 + L'orchestratore applica un filtro di sicurezza (controllo di non-fuga della soluzione) e restituisce la risposta allo studente.
+
+=== Composizione del contesto del tutor
+<composizione-del-contesto-del-tutor>
+L'orchestratore compone il contesto con un nucleo di policy invarianti e il solo modulo relativo alla fase/consegna corrente. Il nucleo definisce il ruolo socratico, il divieto di fornire soluzioni o valutazioni, i vincoli di privacy e i livelli L0--L4; il modulo di fase contiene formato atteso, dimensioni di qualità, errori tipici ed esempi mirati.
+
+Il livello di aiuto è un parametro trasversale di resa della diagnosi e non determina un prompt o un modello distinto. Eventuali esempi per combinazioni fase × livello sono risorse modulari, da includere solo se pertinenti. Questa composizione limita la competizione tra istruzioni, traccia, consegna e cronologia; l'orchestratore deve preservare il nucleo invariabile e selezionare il minimo contesto necessario. Questa selezione è una capacità dell'orchestratore: non è offerta automaticamente da una configurazione statica di Gem o Modelfile.
 
 == Hardware e scelta del modello
 <sec-hardware-modello>
@@ -1896,6 +1947,20 @@ Quando i criteri di go del Pilota 1 sono soddisfatti, le stesse istruzioni socra
   [Vincoli hardware], [Vedi anche Appendice A (scelta del modello e parametri di inferenza)],
 )
 Non si promuove, nella fase 1, l'installazione di modelli open-weight sui dispositivi personali degli studenti. L'eventuale esecuzione locale a casa è uno scenario evolutivo descritto nel protocollo di sperimentazione (sezione sul lavoro domestico).
+
+#horizontalrule
+
+== Composizione delle istruzioni per i Piloti 1 e 2
+<composizione-delle-istruzioni-per-i-piloti-1-e-2>
+Gem, Skill e Modelfile devono condividere un #strong[nucleo breve e invariabile]: identità socratica, divieto di fornire soluzioni complete o valutazioni, lingua italiana, tutela dei dati e definizione dei livelli L0--L4. Questo nucleo è integrato, per la singola interazione, da un modulo relativo alla fase o consegna corrente.
+
+Il modulo di consegna descrive il risultato atteso, le dimensioni con cui valutarne correttezza, completezza, minimalità, pertinenza ed efficienza, il formato previsto, gli errori ricorrenti e pochi esempi pertinenti. I livelli L0--L4 restano invece una regola di formulazione trasversale: stabiliscono se presentare un esito, una domanda, un controesempio, un principio o un esempio isomorfo; non richiedono artefatti runtime distinti.
+
+Nei primi due piloti si mantiene quindi una sola configurazione per runtime (una Gem, una Skill e un Modelfile), per evitare disallineamenti e passaggi impropri tra tutor. Una raccolta di esempi fase × livello può essere mantenuta separatamente e usata in modo selettivo; non va riversata integralmente nelle istruzioni statiche, perché sottrae contesto alla traccia, all'elaborato e alla conversazione. Solo una futura fase con input, formati o controlli deterministici sostanzialmente diversi giustifica una configurazione separata.
+
+Una Gem e un Modelfile non selezionano dinamicamente il modulo di consegna: nei Piloti 1 e 2 questa scelta è effettuata manualmente, attraverso il patto formativo, l'indicazione esplicita della fase e l'istruzione contestuale fornita dal docente o dallo studente. La selezione automatica richiede un componente applicativo esterno e appartiene quindi ai piloti con orchestratore.
+
+La configurazione va considerata tecnicamente fattibile ma da validare sul campo. Per Gemini occorre verificare il rispetto effettivo delle istruzioni e la sostenibilità del passaggio manuale; per Ollama vanno misurati contesto utile, latenza e qualità della risposta sul modello e sull'hardware selezionati. In entrambi i casi la verifica include aderenza a L0--L4, pertinenza del feedback e assenza di fuga della soluzione.
 
 #horizontalrule
 

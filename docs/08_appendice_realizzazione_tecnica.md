@@ -32,6 +32,20 @@ Non si promuove, nella fase 1, l’installazione di modelli open-weight sui disp
 
 ---
 
+## Composizione delle istruzioni per i Piloti 1 e 2
+
+Gem, Skill e Modelfile devono condividere un **nucleo breve e invariabile**: identità socratica, divieto di fornire soluzioni complete o valutazioni, lingua italiana, tutela dei dati e definizione dei livelli L0–L4. Questo nucleo è integrato, per la singola interazione, da un modulo relativo alla fase o consegna corrente.
+
+Il modulo di consegna descrive il risultato atteso, le dimensioni con cui valutarne correttezza, completezza, minimalità, pertinenza ed efficienza, il formato previsto, gli errori ricorrenti e pochi esempi pertinenti. I livelli L0–L4 restano invece una regola di formulazione trasversale: stabiliscono se presentare un esito, una domanda, un controesempio, un principio o un esempio isomorfo; non richiedono artefatti runtime distinti.
+
+Nei primi due piloti si mantiene quindi una sola configurazione per runtime (una Gem, una Skill e un Modelfile), per evitare disallineamenti e passaggi impropri tra tutor. Una raccolta di esempi fase × livello può essere mantenuta separatamente e usata in modo selettivo; non va riversata integralmente nelle istruzioni statiche, perché sottrae contesto alla traccia, all'elaborato e alla conversazione. Solo una futura fase con input, formati o controlli deterministici sostanzialmente diversi giustifica una configurazione separata.
+
+Una Gem e un Modelfile non selezionano dinamicamente il modulo di consegna: nei Piloti 1 e 2 questa scelta è effettuata manualmente, attraverso il patto formativo, l'indicazione esplicita della fase e l'istruzione contestuale fornita dal docente o dallo studente. La selezione automatica richiede un componente applicativo esterno e appartiene quindi ai piloti con orchestratore.
+
+La configurazione va considerata tecnicamente fattibile ma da validare sul campo. Per Gemini occorre verificare il rispetto effettivo delle istruzioni e la sostenibilità del passaggio manuale; per Ollama vanno misurati contesto utile, latenza e qualità della risposta sul modello e sull'hardware selezionati. In entrambi i casi la verifica include aderenza a L0–L4, pertinenza del feedback e assenza di fuga della soluzione.
+
+---
+
 ## Piloti 3 e 4 — Stack parziale e completo
 
 I controlli deterministici, la sandbox SQLite e l’architettura neuro-simbolica piena sono descritti in **Appendice A**. I formati di consegna strutturati (YAML e affini), utili quando i controlli automatici sono attivi, sono in **Appendice B**. Nella fase iniziale della sperimentazione (Pilota 1) tali formati **non** sono obbligatori per gli studenti.
