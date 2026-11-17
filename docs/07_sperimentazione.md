@@ -103,11 +103,12 @@ Esempi di item per pre/post-test e prova di trasferimento potranno essere costru
 
 La sperimentazione procede per fasi successive. Il dettaglio di configurazione (Gem, Modelfile, stack) è nelle **appendici tecniche**; qui si riporta solo il senso organizzativo.
 
-1. **Pilota 1 – Avvio senza infrastruttura dedicata** (già in corso): uso di Gemini tramite Google Classroom, con istruzioni socratiche. Non richiede installazioni locali.
-2. **Pilota 2 – Esecuzione in laboratorio**: stesso ruolo del tutor, su workstation dell’Istituto (quando i criteri di passaggio del Pilota 1 sono soddisfatti).
-3. **Pilota 3 e 4 – Controlli automatici e stack più completo**: solo dopo il consolidamento dei piloti precedenti.
+1. **Pilota 1 – Avvio senza infrastruttura dedicata** (già in corso): uso di Gemini tramite Google Classroom, con istruzioni socratiche. Non richiede installazioni locali. In questa fase il «sistema» è un **protocollo didattico con LLM** (Gem + disciplina del docente), non ancora un *Intelligent Tutoring System*: mancano controlli deterministici, orchestratore e log istituzionali automatici.
+2. **Pilota 2 – Feasibility check del modello locale**: stesso ruolo maieutico del tutor, eseguito su workstation dell’Istituto (Ollama / modello quantizzato, obiettivo 6 GB VRAM), quando i criteri di passaggio del Pilota 1 sono soddisfatti. Il Pilota 2 **non** è un tutor di produzione: serve a misurare contesto utile, latenza, qualità della risposta e tenuta maieutica sul hardware disponibile.
+3. **Pilota intermedio (eventuale, 2.5) – Collaborazione di ricerca**: se disponibile il supporto di un gruppo universitario (es. uno o due ricercatori SSD ING-INF/05 o affini con competenza su basi di dati e didattica dell’informatica), si può introdurre un pilota dedicato a prototipi minimi di validazione (checklist, parser leggero, primi test di non-fuga) senza ancora lo stack completo. Tale fase non è obbligatoria e dipende da accordi esterni all’Istituto.
+4. **Piloti 3 e 4 – Controlli automatici e stack più completo**: solo dopo il consolidamento dei piloti precedenti e, preferibilmente, con capacità di sviluppo software che il solo organico scolastico non garantisce in tempi brevi.
 
-**Criteri di passaggio (go/no-go):** tenuta maieutica entro le soglie di fuga; feedback positivo; assenza di incidenti di privacy; carico docente entro le stime.
+**Criteri di passaggio (go/no-go):** tenuta maieutica entro le soglie di fuga; feedback positivo; assenza di incidenti di privacy; carico docente entro le stime. Per il Pilota 2 si aggiungono: latenza accettabile in laboratorio e qualità del dialogo non inferiore, in media, a quella osservata con Gemini sul campione di trascrizioni.
 
 **Composizione del contesto del tutor.** Nei Piloti 1 e 2 si mantiene una sola Gem istituzionale e, rispettivamente, una sola Skill e un solo Modelfile. Moltiplicare le configurazioni non riduce il contesto della singola interazione: aumenta invece il rischio di divergenza tra istruzioni, di selezione del tutor errato e di frammentazione del percorso dello studente.
 
@@ -284,8 +285,16 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 4. Possibile estensione metodologica a tutor socratici in altri ambiti disciplinari.  
 5. Relazioni intermedie e finali per la governance dell’Istituto e per la condivisione in reti di scuole / progetti (incluso Health School).
 
-**Impatto atteso (da verificare empiricamente).** Il protocollo mira a: (a) ridurre frustrazione e favorire ritenzione sulla prova di trasferimento senza dispositivi; (b) offrire un modello operativo replicabile e conforme a GDPR/AI Act per l’uso di LLM in contesto scolastico; (c) trasferire il pattern (tutor socratico + controlli deterministici + prova di trasferimento) ad altri domini; (d) produrre evidenze potenzialmente pubblicabili in Computing Education, a condizione di protocolli e misure dichiarati. Tali effetti restano ipotesi: un miglioramento osservato in un singolo pilota non dimostra da solo un nesso causale.
+**Impatto atteso (da verificare empiricamente).**
 
+La letteratura sui tutor step-based stima effetti medi rilevanti ma non miracolosi (VanLehn: circa *d* ≈ 0,76 rispetto all’istruzione senza tutor; il tutoraggio umano individuale resta più alto, intorno a *d* ≈ 0,79). Non si assume che un tutor LLM socratico, in un pilota scolastico con N piccolo e senza gruppo di controllo, raggiunga automaticamente tali valori: servono misure locali.
+
+Ipotesi di impatto, da trattare come tali:
+
+- **Didattico:** riduzione della frustrazione sul salto testo → ER → relazionale; migliore ritenzione sulla prova di trasferimento senza dispositivi; possibile riduzione del ricorso a L3–L4 nel tempo. Parte del guadagno può derivare dalla *struttura del percorso* (consegne, rubrica, trasferimento), non solo dal LLM.
+- **Istituzionale:** materiale riusabile (prompt, livelli L0–L4, protocollo, rubriche) a costo di adozione contenuto per altre classi SIA dello stesso Istituto; replicabilità in altre scuole solo dopo documentazione e almeno una seconda sperimentazione indipendente.
+
+Un miglioramento osservato in un singolo pilota non dimostra un nesso causale con il tutor.
 ---
 
 ## Governance

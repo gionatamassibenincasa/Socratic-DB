@@ -19,9 +19,11 @@ L’uso di Gemini è subordinato a conferma del DPO rispetto alle policy dell’
 
 ---
 
-## Pilota 2 — On-premise leggero (Ollama)
+## Pilota 2 — Feasibility check on-premise (Ollama)
 
 Quando i criteri di go del Pilota 1 sono soddisfatti, le stesse istruzioni socratiche possono essere caricate in un **Modelfile** per Ollama, eseguito sulla workstation di laboratorio (obiettivo: 6 GB di VRAM, modelli quantizzati di dimensioni contenute).
+
+**Natura del pilota.** Il Pilota 2 è un *feasibility check* del modello locale, non un tutor di produzione. Serve a misurare, sullo hardware reale dell’Istituto: contesto utile, latenza per turno, qualità e stabilità del dialogo maieutico, rispetto di L0–L4 e assenza di fuga della soluzione su un campione di sessioni. Un esito negativo o parziale (qualità insufficiente, latenza inaccettabile) non invalida il Pilota 1: consente di restare su Gemini o di rivedere modello/quantizzazione.
 
 | Elemento | Collocazione nel repository |
 |----------|------------------------------|
@@ -48,9 +50,11 @@ Su dialoghi multi-turno i modelli tendono alla *sycophancy*. Mantenere il compor
 
 ---
 
-## Piloti 3 e 4 — Stack parziale e completo
+## Pilota intermedio (eventuale) e Piloti 3–4
 
-I controlli deterministici, la sandbox SQLite e l’architettura neuro-simbolica piena sono descritti in **Appendice A**. I formati di consegna strutturati (YAML e affini), utili quando i controlli automatici sono attivi, sono in **Appendice B**. Nella fase iniziale della sperimentazione (Pilota 1) tali formati **non** sono obbligatori per gli studenti.
+**Pilota intermedio (2.5), se c’è capacità di ricerca.** L’organico scolastico da solo difficilmente realizza in tempi brevi validatori, filtro di non-fuga automatico e golden set. Un accordo con un gruppo universitario (tipicamente uno o due ricercatori con SSD affini a basi di dati / sistemi, es. ING-INF/05) può rendere realistico un pilota dedicato a prototipi minimi: checklist eseguibile, parser leggero, primi test automatici di non-fuga, senza ancora orchestratore e sandbox completi. Non è una fase obbligatoria del protocollo scolastico.
+
+**Piloti 3 e 4 — Stack parziale e completo.** I controlli deterministici, la sandbox SQLite e l’architettura ibrida completa sono descritti in **Appendice A**. I formati di consegna strutturati (YAML e affini), utili quando i controlli automatici sono attivi, sono in **Appendice B**. Nella fase iniziale della sperimentazione (Pilota 1) tali formati **non** sono obbligatori per gli studenti. Fino a quando non esiste software funzionante, non si presenta lo stack come operativo.
 
 ---
 

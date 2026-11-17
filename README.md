@@ -39,7 +39,7 @@ L’intera documentazione tecnica, pedagogica e sperimentale è presente nella *
 | Sezione | Documento | Argomenti principali |
 | :--- | :--- | :--- |
 | **01. Stato dell’Arte** | [`docs/01_stato_dell_arte.md`](docs/01_stato_dell_arte.md) | Intelligent Tutoring Systems, cognitive offloading, scaffolding socratico, architettura neuro-simbolica. |
-| **02. Pedagogia** | [`docs/02_quadro_pedagogico.md`](docs/02_quadro_pedagogico.md) | Destinatari (ITIA, SIA e adattamento Liceo), prerequisiti, obiettivi O1–O8, ruoli. |
+| **02. Pedagogia** | [`docs/02_quadro_pedagogico.md`](docs/02_quadro_pedagogico.md) | Destinatari (SIA prioritario; ITIA in trasferibilità; adattamento Liceo), prerequisiti, obiettivi O1–O8, ruoli. |
 | **03. Didattica** | [`docs/03_protocollo_didattico.md`](docs/03_protocollo_didattico.md) | Percorso in fasi e consegne, livelli di aiuto L0–L4, ciclo di revisione, catalogo tracce. |
 | **04. Architettura** | [`docs/04_architettura_sistema.md`](docs/04_architettura_sistema.md) | Componenti del sistema e progressione dei piloti. |
 | **05. Formati & Schemi** | [`docs/05_formati_e_schemi.md`](docs/05_formati_e_schemi.md) | Specifiche tecniche (in fase di semplificazione). |
