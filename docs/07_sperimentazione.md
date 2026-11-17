@@ -123,6 +123,8 @@ Gem e Modelfile sono configurazioni statiche: con una sola configurazione non se
 
 La fattibilità operativa della scelta è un'ipotesi da verificare, non una proprietà già dimostrata. Il Pilota 1 confronterà, quando sostenibile, il nucleo comune da solo, il nucleo con istruzione manuale di fase e l'eventuale configurazione distinta per fase; per ciascun caso rileverà fuga della soluzione, rispetto del livello L0–L4, pertinenza del feedback e carico per docente e studenti. Il Pilota 2 aggiungerà la verifica di contesto, latenza e qualità del modello locale sull'hardware disponibile.
 
+I modelli generativi, per addestramento e ottimizzazione alla utilità percepita dall’utente, tendono alla *sycophancy* (compiacere la richiesta). Su dialoghi multi-turno lunghi il rispetto dei livelli L0–L4 e del divieto di soluzione completa non è garantito una volta per tutte: richiede prompt engineering iterativo, monitoraggio e guardrail robusti (filtro di non-fuga, golden set, eventuale ricomposizione del contesto a cambio di fase). La mitigazione prevista (filtro, golden set, livelli espliciti) è corretta, ma in produzione non è «set and forget»: va considerata un processo di affinamento continuo.
+
 Per l’implementazione tecnica: Appendice C (Gem, Skill, Modelfile), Appendice A (architettura e hardware), Appendice B (formati strutturati, non obbligatori nel Pilota 1).
 
 ---
@@ -207,6 +209,8 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 - Pertinenza del feedback rispetto alla consegna e all'elaborato
 - Gestibilità del passaggio manuale di fase nei Piloti 1–2
 - Limiti di contesto, latenza e qualità del modello locale nel Pilota 2
+- Tenuta del comportamento maieutico su dialoghi multi-turno (sycophancy, deriva)
+- Affidabilità e costo di manutenzione di filtro di non-fuga e golden set
 
 ---
 
@@ -262,7 +266,9 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 | Delega cognitiva | Livelli L0–L4 + prova di trasferimento su carta |
 | Fuga della soluzione | Istruzioni rigorose + autodichiarazione + campione |
 | Contesto LLM troppo ampio / diluizione del prompt | Nucleo maieutico stabile + modulo della consegna corrente; selezione dei soli esempi pertinenti; passaggio esplicito e manuale nei Piloti 1–2; futura orchestrazione leggera del contesto, senza moltiplicare configurazioni per livello L0–L4 |
-| Carico docente | Avvio con 5 studenti; stime orarie esplicite |
+| Sycophancy / deriva del comportamento maieutico su dialoghi lunghi | Nucleo di policy invariabile; moduli di fase; filtro di non-fuga; golden set; eventuale reset o ricomposizione del contesto a cambio di fase; monitoraggio campionario delle trascrizioni; affinamento continuo del prompt |
+| Prompt leakage / «sgancio» della soluzione | Filtro di sicurezza + golden set + soglie di fuga già definite; verifica a campione |
+| Carico docente e resistenza al cambiamento | Avvio con 5 studenti; report compatti e pre-screening; stime orarie esplicite; formazione dei sperimentatori; misurazione del carico reale nel pilota |
 | 6 GB VRAM | Modelli quantizzati; priorità al Pilota 1 |
 | Privacy | DPO; consenso; opzione maggiorenni |
 | Lavoro domestico non controllabile | Accettato come limite in fase 1; solo incoraggiamento; prova di trasferimento come ancoraggio |
@@ -277,6 +283,8 @@ Tracce da catalogo Seconda Prova (Esame di Stato), prove d’Istituto, tracce ge
 3. Documentazione di **buone pratiche** (prompt, livelli di aiuto, protocollo di rilevazione, rubriche) riutilizzabili da altre scuole e da corsi universitari introduttivi di basi di dati.  
 4. Possibile estensione metodologica a tutor socratici in altri ambiti disciplinari.  
 5. Relazioni intermedie e finali per la governance dell’Istituto e per la condivisione in reti di scuole / progetti (incluso Health School).
+
+**Impatto atteso (da verificare empiricamente).** Il protocollo mira a: (a) ridurre frustrazione e favorire ritenzione sulla prova di trasferimento senza dispositivi; (b) offrire un modello operativo replicabile e conforme a GDPR/AI Act per l’uso di LLM in contesto scolastico; (c) trasferire il pattern (tutor socratico + controlli deterministici + prova di trasferimento) ad altri domini; (d) produrre evidenze potenzialmente pubblicabili in Computing Education, a condizione di protocolli e misure dichiarati. Tali effetti restano ipotesi: un miglioramento osservato in un singolo pilota non dimostra da solo un nesso causale.
 
 ---
 
