@@ -44,6 +44,8 @@ Una Gem e un Modelfile non selezionano dinamicamente il modulo di consegna: nei 
 
 La configurazione va considerata tecnicamente fattibile ma da validare sul campo. Per Gemini occorre verificare il rispetto effettivo delle istruzioni e la sostenibilità del passaggio manuale; per Ollama vanno misurati contesto utile, latenza e qualità della risposta sul modello e sull'hardware selezionati. In entrambi i casi la verifica include aderenza a L0–L4, pertinenza del feedback e assenza di fuga della soluzione.
 
+Su dialoghi multi-turno i modelli tendono alla *sycophancy*. Mantenere il comportamento maieutico richiede quindi non solo un buon system prompt iniziale, ma un processo di affinamento continuo: aggiornamento del nucleo e dei moduli di fase, golden set di regressione, filtro di non-fuga e revisione campionaria delle trascrizioni. Filtro e golden set non sono «set and forget».
+
 ---
 
 ## Piloti 3 e 4 — Stack parziale e completo
