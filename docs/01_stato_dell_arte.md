@@ -48,6 +48,30 @@ Koedinger e Aleven formulano l'*assistance dilemma*: quanto e quando fornire ass
 
 Per un tutor basato su LLM il rischio è asimmetrico. I modelli generativi tendono, per addestramento e per ottimizzazione alla «utilità» immediata, a *dare* la risposta completa piuttosto che a trattenerla. In questo senso l'aiuto in sé può essere deleterio nella formazione: se la soluzione arriva senza elaborazione, si indeboliscono proprio le competenze che si intendeva sviluppare. La progettazione di Socratic-DB assume quindi un vincolo esplicito: il tutor deve *impedire la delega cognitiva*, non massimizzare la velocità di completamento del compito. I livelli L0–L4 e il divieto di soluzione completa operano come politiche di *withholding* calibrato. Inoltre, quando lo studente è bloccato, il tutor non dovrebbe sostituirsi al materiale didattico formale: può rinviare a definizioni, esempi del libro di testo o della lezione, e chiedere di applicarli al caso in esame, piuttosto che produrre al posto dello studente lo schema o la query. In questo modo l'assistenza resta orientata allo studio strutturato e non alla sostituzione del pensiero.
 
+### Eduardo e l’addestramento di tutor LLM sull’assistance dilemma {#sec-eduardo}
+
+Il dilemma dell’assistenza è tornato centrale nella ricerca sui tutor basati su LLM. Macina, Kapur e Sachan propongono **Eduardo**, una ricetta di *reinforcement learning* multi-turno per addestrare modelli a *insegnare* anziché a *dire la soluzione* [@macina2026eduardo]. Il nome designa il metodo di training e i modelli risultanti (aperti, da 4B a 27B parametri); non è un framework acronimico di decision-making scolastico.
+
+Elementi rilevanti per Socratic-DB:
+
+1. **Near-transfer mascherato come reward.** Dopo il dialogo, lo «studente» simulato affronta una variante del problema *senza* vedere le battute del tutor (mascherate). Il reward cresce solo se lo studente riesce da solo. È l’analogo formale della nostra **prova di trasferimento su carta senza dispositivi**: misura ciò che resta quando l’assistenza non è più disponibile.
+2. **Gate binari anti-telling.** Correttezza fattuale delle risposte del tutor e divieto di *solution handover* (non consegnare la soluzione). Corrispondono, in termini di policy, al divieto di soluzione completa e alle soglie di «fuga della soluzione» del protocollo.
+3. **Risultato empirico sul training.** Un reward basato solo sul learning gain *non* separa insegnare da dire: senza i gate e senza il post-test mascherato, il modello impara a svelare la risposta. Ciò rafforza l’ipotesi di progetto di Socratic-DB: livelli L0–L4 e withholding non emergono spontaneamente da un LLM generico; vanno imposti (prompt, filtri, valutazione umana) o, in scenari di ricerca avanzata, appresi con ricompense disegnate come in Eduardo.
+4. **Limiti di trasferibilità.** Eduardo è addestrato e valutato su matematica (dialoghi multi-turno, studenti simulati, benchmark MathDial / MathTutorBench). Non copre la progettazione di basi di dati, non include controlli deterministici su schema/SQL e non sostituisce la supervisione del docente in contesto scolastico regolamentato (GDPR, AI Act, valutazione sommativa umana).
+
+**Confronto sintetico.**
+
+| Dimensione | Eduardo (Macina et al., 2026) | Socratic-DB (questa proposta) |
+| --- | --- | --- |
+| Obiettivo | Addestrare LLM a insegnare (anti-telling) via RL | Protocollo didattico scolastico anti-delega cognitiva |
+| Dominio | Matematica, studenti simulati | Basi di dati (SIA), studenti reali, secondaria |
+| Meccanismo anti-offloading | Near-transfer mascherato + gate no-handover | Livelli L0–L4, divieto soluzione, prova su carta |
+| Controlli di dominio | Non centrali (focus pedagogico) | Previsti nei piloti successivi (vincoli, SQL) |
+| Valutazione | Benchmark automatici / reward model | Docente + correzione in cieco + trasferimento |
+| Stack attuale | Modelli RL open-weight | Pilota 1: Gem + disciplina docente (non ancora ITS) |
+
+Eduardo conferma sul piano sperimentale (in un altro dominio) due scelte già assunte qui: (a) misurare l’apprendimento *senza* il tutor in contesto; (b) trattare la consegna della soluzione come fallimento del tutor, non come successo. Non autorizza a presentare Socratic-DB come sistema addestrato con RL, né a importare metriche MathDial come se fossero già valide per la modellazione ER.
+
 ### Carico cognitivo e interazione uomo–macchina {#sec-carico-cognitivo-hci}
 
 La *Cognitive Load Theory* [@sweller1988cognitive; @sweller2011cognitive] distingue carico intrinseco, estrinseco e pertinente. Un tutor conversazionale può ridurre il carico estrinseco (orientamento, feedback tempestivo) oppure aumentarlo (dialoghi lunghi, ambigui o ridondanti). La progettazione dei livelli di aiuto e la brevità delle risposte del tutor mirano a contenere il carico estrinseco, lasciando spazio al carico pertinente (elaborazione delle scelte di modellazione).
@@ -153,7 +177,8 @@ L'uso di strumenti di IA in contesti scolastici richiede la valutazione del trat
 Rispetto al profilo di Socratic-DB, la letteratura consultata risulta:
 
 - **solida** su ITS e CBM per SQL, su errori e misconcezioni SQL, su opportunità/rischi degli LLM nella programmazione introduttiva;
+- **in evoluzione** sull’*assistance dilemma* per tutor LLM (Eduardo: near-transfer mascherato e gate anti-handover in matematica) [@macina2026eduardo], ancora da verificare su progettazione di basi di dati e su studenti reali in secondaria;
 - **ancora limitata** su tutor socratici basati su LLM per la *progettazione completa* di basi di dati (dall'analisi dei requisiti allo schema e alle query);
 - **poco collegata**, nel dominio delle basi di dati, alla letteratura di psicologia cognitiva su *cognitive offloading*, *self-explanation* e carico cognitivo, e agli studi HCI su trasparenza dell'aiuto e metacognizione.
 
-Queste lacune motivano la sperimentazione empirica descritta nel protocollo e orientano le scelte di misura (processo, fuga della soluzione, trasferimento senza dispositivi).
+Queste lacune motivano la sperimentazione empirica descritta nel protocollo e orientano le scelte di misura (processo, fuga della soluzione, trasferimento senza dispositivi), in continuità concettuale con l’idea di valutare ciò che lo studente sa fare *senza* il tutor.
